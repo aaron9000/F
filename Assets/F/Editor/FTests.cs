@@ -11,6 +11,7 @@ namespace UnityTest
 	internal class FTests
 	{
 
+		#region ShallowClone
 		[Test]
 		public void ShallowCloneTest()
 		{
@@ -21,9 +22,11 @@ namespace UnityTest
 			Assert.AreEqual (clonedList.Count, 2);
 			Assert.AreEqual (clonedList[0], 1);
 		}
+		#endregion
 
+		#region Map
 		[Test]
-		public void MapTest()
+		public void MapListTest()
 		{
 			var list = new List<int> (new int[] {1 ,2});
 			var mappedList = F.map<int, string>(x => (x * x).ToString(), list);
@@ -31,37 +34,66 @@ namespace UnityTest
 			Assert.AreEqual (mappedList[1], "4");
 		}
 
+		[Test]
+		public void MapRectArrayTest()
+		{
+			object[,] rectArray = new object[,] { { 1, "2" }, { 2, "3" } };
+			var mappedList = F.map<object, string>(x => x[0].ToString() + x[1].ToString(), rectArray);
+			Assert.AreEqual (mappedList[0], "12");
+			Assert.AreEqual (mappedList[1], "23");
+		}
 
-//		[Test]
-//		public void FromPairsArrayTest()
-//		{
-////			object[,] pairs = new object[,] { { 1, "2" }, { 2, "3" } };
-//			var pairs = new List<List<object>> ();
-//			pairs.Add(new List<object>(new object[] {1 ,"2"}));
-//			pairs.Add(new List<object>(new object[] {2 ,"3"}));
-//
-//			Dictionary<int, string> dict = F.fromPairs<int, string>(pairs);
-//			Assert.AreEqual (dict[1], "2");
-//			Assert.AreEqual (dict[2], "3");
-//		}
-
-//		[Test]
-//		public void FromPairsListTest()
-//		{
-//			var pairs = new List<List<object>> ();
-////			IEnumerable<IEnumerable<object>> pairs = new List<List<object>>();
-//
-//			pairs.Add(new List<object>(new object[] {1 ,"2"}));
-//			pairs.Add(new List<object>(new object[] {2 ,"3"}));
-//
-//
-//
-//			Dictionary<int, string> dict = F.fromPairs<int, string>(pairs);
-//			Assert.AreEqual (dict[1], "2");
-//			Assert.AreEqual (dict[2], "3");
-//		}
+		[Test]
+		public void MapJaggedArrayTest()
+		{
+			object[][] rectArray = new object[][] { new object[]{ 1, "2" }, new object[]{ 2, "3" } };
+			var mappedList = F.map<object[], string>(x => x[0].ToString() + x[1].ToString(), rectArray);
+			Assert.AreEqual (mappedList[0], "12");
+			Assert.AreEqual (mappedList[1], "23");
+		}
+		#endregion
 
 
+		#region ToPairs
+		[Test]
+		public void ToPairsTest()
+		{
+			var dictionary = new Dictionary<string, int> ();
+			dictionary.Add ("a", 1);
+			dictionary.Add ("b", 2);
+
+			var list = F.toPairs<string, int>(dictionary);
+			Assert.AreEqual (list[0, 0], "a");
+			Assert.AreEqual (list[0, 1], 1);
+			Assert.AreEqual (list[1, 0], "b");
+			Assert.AreEqual (list[1, 1], 2);
+		}
+		#endregion
+
+		#region FromPairs
+		[Test]
+		public void FromPairsRectArrayTest()
+		{
+			object[,] pairs = new object[,] { { 1, "2" }, { 2, "3" } };
+			Dictionary<int, string> dict = F.fromPairs<int, string>(pairs);
+			Assert.AreEqual (dict[1], "2");
+			Assert.AreEqual (dict[2], "3");
+		}
+
+		public void FromPairsArrayTest()
+		{
+			//			object[,] pairs = new object[,] { { 1, "2" }, { 2, "3" } };
+			var pairs = new List<List<object>> ();
+			pairs.Add(new List<object>(new object[] {1 ,"2"}));
+			pairs.Add(new List<object>(new object[] {2 ,"3"}));
+
+			Dictionary<int, string> dict = F.fromPairs<int, string>(pairs);
+			Assert.AreEqual (dict[1], "2");
+			Assert.AreEqual (dict[2], "3");
+		}
+		#endregion
+
+		#region ShallowFlatten
 		[Test]
 		public void ShallowFlattenListTest()
 		{
@@ -100,23 +132,10 @@ namespace UnityTest
 			Assert.AreEqual (list[2], 3);
 			Assert.AreEqual (list[3], 4);
 		}
+		#endregion
 
 
-
-		[Test]
-		public void ToPairsTest()
-		{
-			var dictionary = new Dictionary<string, int> ();
-			dictionary.Add ("a", 1);
-			dictionary.Add ("b", 2);
-
-			var list = F.toPairs<string, int>(dictionary);
-			Assert.AreEqual (list[0][0], "a");
-			Assert.AreEqual (list[0][1], 1);
-			Assert.AreEqual (list[1][0], "b");
-			Assert.AreEqual (list[1][1], 2);
-		}
-
+		#region Reduce
 		[Test]
 		public void ReduceValueTest()
 		{
@@ -140,5 +159,6 @@ namespace UnityTest
 			Assert.AreEqual (reducedCollection[1], 1);
 			Assert.AreEqual (reducedCollection[2], 1);
 		}
+		#endregion
 	}
 }
