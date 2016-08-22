@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Collections;
+using System.Linq;
 
 public static class F {
 
@@ -60,10 +62,14 @@ public static class F {
 		return newList;
 	}
 
-	public static Dictionary<TKey, TValue> fromPairs<TKey, TValue>(List<List<object>> pairs){
+	public static Dictionary<TKey, TValue> fromPairs<TKey, TValue>(IEnumerable<IEnumerable<object>> pairs){
 		Dictionary<TKey, TValue> newDict = new Dictionary<TKey, TValue> ();
-		foreach(List<object> pair in pairs){
-			newDict.Add ((TKey)pair [0], (TValue)pair [1]);
+		foreach(IEnumerable<object> pair in pairs){
+			IEnumerator e = pair.GetEnumerator();
+			TKey k = (TKey)e.Current;
+			e.MoveNext();
+			TValue v = (TValue)e.Current;
+			newDict.Add (k, v);
 		}
 		return newDict;
 	}
@@ -93,9 +99,31 @@ public static class F {
 	}
 
 	public static List<TPluckedValue> pluck<TElement, TPluckedValue>(string key, IEnumerable<TElement> collection){
+
 		return null;
 	}
 
+
+
+	public static List<TElement> shallowFlatten<TElement>(TElement[,] array){
+		List<TElement> newList = new List<TElement>();
+		foreach (TElement element in array) {
+			newList.Add(element);
+		}
+		return newList;
+	}
+
+	public static List<TElement> shallowFlatten<TElement>(TElement[][] lists){
+		return (lists.SelectMany(s => s)).ToList();
+	}
+
+	public static List<TElement> shallowFlatten<TElement>(List<List<TElement>> lists){
+		return (lists.SelectMany(s => s)).ToList();
+	}
+
+	public static List<TElement> shallowFlatten<TElement>(ICollection<ICollection<TElement>> lists){
+		return (lists.SelectMany(s => s)).ToList();
+	}
 
 
 }

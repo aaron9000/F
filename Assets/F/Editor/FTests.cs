@@ -30,18 +30,78 @@ namespace UnityTest
 			Assert.AreEqual (mappedList[0], "1");
 			Assert.AreEqual (mappedList[1], "4");
 		}
-			
-		[Test]
-		public void FromPairsTest()
-		{
-			var pairs = new List<List<object>> ();
-			pairs.Add(new List<object>(new object[] {1 ,"2"}));
-			pairs.Add(new List<object>(new object[] {2 ,"3"}));
 
-			var dict = F.fromPairs<int, string>(pairs);
-			Assert.AreEqual (dict[1], "2");
-			Assert.AreEqual (dict[2], "3");
+
+//		[Test]
+//		public void FromPairsArrayTest()
+//		{
+////			object[,] pairs = new object[,] { { 1, "2" }, { 2, "3" } };
+//			var pairs = new List<List<object>> ();
+//			pairs.Add(new List<object>(new object[] {1 ,"2"}));
+//			pairs.Add(new List<object>(new object[] {2 ,"3"}));
+//
+//			Dictionary<int, string> dict = F.fromPairs<int, string>(pairs);
+//			Assert.AreEqual (dict[1], "2");
+//			Assert.AreEqual (dict[2], "3");
+//		}
+
+//		[Test]
+//		public void FromPairsListTest()
+//		{
+//			var pairs = new List<List<object>> ();
+////			IEnumerable<IEnumerable<object>> pairs = new List<List<object>>();
+//
+//			pairs.Add(new List<object>(new object[] {1 ,"2"}));
+//			pairs.Add(new List<object>(new object[] {2 ,"3"}));
+//
+//
+//
+//			Dictionary<int, string> dict = F.fromPairs<int, string>(pairs);
+//			Assert.AreEqual (dict[1], "2");
+//			Assert.AreEqual (dict[2], "3");
+//		}
+
+
+		[Test]
+		public void ShallowFlattenListTest()
+		{
+			var pairs = new List<List<int>> ();
+			pairs.Add(new List<int>(new int[] {1, 2}));
+			pairs.Add(new List<int>(new int[] {3, 4}));
+
+			var list = F.shallowFlatten<int>(pairs);
+			Assert.AreEqual (list[0], 1);
+			Assert.AreEqual (list[1], 2);
+			Assert.AreEqual (list[2], 3);
+			Assert.AreEqual (list[3], 4);
 		}
+
+		[Test]
+		public void ShallowFlattenJaggedArrayTest()
+		{
+			int[][] pairs = new int[][] { new int[] { 1, 2, 3 }, new int[] { 4, 5 } };
+	
+			var list = F.shallowFlatten<int>(pairs);
+			Assert.AreEqual (list[0], 1);
+			Assert.AreEqual (list[1], 2);
+			Assert.AreEqual (list[2], 3);
+			Assert.AreEqual (list[3], 4);
+			Assert.AreEqual (list[4], 5);
+		}
+
+		[Test]
+		public void ShallowFlattenRectArrayTest()
+		{
+			int[,] pairs = new int[,] { { 1, 2 }, { 3, 4 } };
+
+			var list = F.shallowFlatten<int>(pairs);
+			Assert.AreEqual (list[0], 1);
+			Assert.AreEqual (list[1], 2);
+			Assert.AreEqual (list[2], 3);
+			Assert.AreEqual (list[3], 4);
+		}
+
+
 
 		[Test]
 		public void ToPairsTest()
