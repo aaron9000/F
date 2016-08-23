@@ -110,7 +110,7 @@ public static class F {
 	}
 
 	// TODO: want shallow clone of: collection, object, struct, dictionary
-	public static TCollection shallowClone<TCollection, TElement>(TCollection source) where TCollection: ICollection<TElement>, new(){
+	public static TCollection shallowClone<TElement, TCollection>(TCollection source) where TCollection: ICollection<TElement>, new(){
 		TCollection clone = new TCollection ();
 		// TODO: may need to do something different for dictionaries...
 		foreach(var value in source){
@@ -120,35 +120,50 @@ public static class F {
 	}
 		
 	#region Map
-	public static TOutput[] map<TInput, TOutput>(Func<TInput, TOutput> mappingFunction, IEnumerable<TInput> collection){
-		var newList = new List<TOutput>();
-		foreach(TInput value in collection){
+	public static TOutputElement[] mapDictionary<TInputKey, TInputValue, TOutputElement>(Func<TInputKey, TInputValue, TOutputElement> mappingFunction, IDictionary<TInputKey, TInputValue> dictionary){
+		var newArray = new TOutputElement[dictionary.Keys.Count];
+		int index = 0;
+		foreach (KeyValuePair<TInputKey, TInputValue> entry in dictionary){
+			newArray[index] = mappingFunction(entry.Key, entry.Value);
+			index++;
+		}
+		return newArray;
+	}
+
+	public static TOutputElement[] map<TInputElement, TOutputElement>(Func<TInputElement, TOutputElement> mappingFunction, IEnumerable<TInputElement> collection){
+		var newList = new List<TOutputElement>();
+		foreach(TInputElement value in collection){
 			newList.Add(mappingFunction (value));		
 		}
 		return newList.ToArray();
 	}
-	public static TOutput[] map<TInput, TOutput>(Func<TInput[], TOutput> mappingFunction, TInput[,] rectArray){
-		var newList = new TOutput[rectArray.GetLength(0)];
-		int index = 0;
-
+	public static TOutputElement[] mapRectangularArray<TInputElement, TOutputElement>(Func<TInputElement[], TOutputElement> mappingFunction, TInputElement[,] rectArray){
+		var newArray = new TOutputElement[rectArray.GetLength(0)];
 		int innerLength = 0;
-		TInput[] row = null;
+		TInputElement[] row = null;
 		for (int i = 0; i < rectArray.GetLength(0); i++) {
 			innerLength = rectArray.GetLength(1);
-			row = new TInput[innerLength];
+			row = new TInputElement[innerLength];
 			for (int j = 0; j < innerLength; j++){
 				row[j] = rectArray[i, j];
 			}
-			newList[i] = mappingFunction (row);
+			newArray[i] = mappingFunction (row);
 		}
-		return newList;
+		return newArray;
 	}
 	#endregion
 
 	#region FromPairs
+	public static Dictionary<TKey, TValue> fromPairs<TKey, TValue>(object[][] pairs){
+		var newDict = new Dictionary<TKey, TValue> ();
+		foreach(var pair in pairs){
+			newDict.Add ((TKey)pair[0], (TValue)pair[1]);
+		}
+		return newDict;
+	}
 	public static Dictionary<TKey, TValue> fromPairs<TKey, TValue>(List<List<object>> pairs){
 		var newDict = new Dictionary<TKey, TValue> ();
-		foreach(List<object> pair in pairs){
+		foreach(var pair in pairs){
 			newDict.Add ((TKey)pair[0], (TValue)pair[1]);
 		}
 		return newDict;
@@ -185,6 +200,7 @@ public static class F {
 
 	#region reduce
 	public static TAccum reduce<TAccum, TElement> (Func<TAccum, TElement, TAccum> reducingFunction, TAccum startValue, IEnumerable<TElement> list) {
+		// TODO: shallowClone if not a value type
 		TAccum accum = startValue;
 		foreach(TElement value in list){
 			accum = reducingFunction (accum, value);
@@ -207,7 +223,7 @@ public static class F {
 
 	// Pluck
 	public static List<TPluckedValue> pluck<TElement, TPluckedValue>(string key, IEnumerable<TElement> collection){
-
+//		if (isDictionary())
 		return null;
 	}
 
@@ -227,7 +243,6 @@ public static class F {
 		}
 		return newList;
 	}
-
 	public static TElement[] shallowFlatten<TElement>(TElement[][] lists){
 		return lists.SelectMany(s => s).ToArray();
 	}

@@ -6,17 +6,66 @@ using UnityEngine;
 
 namespace UnityTest
 {
+
+
 	[TestFixture]
 	[Category("F Tests")]
 	internal class FTests
 	{
+
+		#region 1D Colections
+
+		// Uniform 1D
+		private HashSet<int> INT_SET() {
+			return new HashSet<int> {1, 2};
+		}
+		private int[] INT_ARRAY() { 
+			return new int[] {1, 2}; 
+		}
+		private List<int> INT_LIST() {
+			return new List<int> (new int[] {1, 2});
+		}
+
+		// Mixed 1D
+		private HashSet<object> MIXED_OBJECT_SET(){ 
+			return new HashSet<object> {1, "2", 2, "3"}; 
+		}
+		private List<object> MIXED_OBJECT_LIST(){ 
+			return new List<object> (new object[]{1, "2", 3, "3"}); 
+		}
+		private object[] MIXED_OBJECT_ARRAY(){
+			return new object[] {1, "2", 3, "3"}; 
+		}
+
+		// Mixed 2D 
+		private object[,] MIXED_OBJECT_RECT_ARRAY(){
+			return new object[,] { { 1, "2" }, { 2, "3" } }; 
+		}
+		private object[][] MIXED_OBJECT_JAGGED_ARRAY(){ 
+			return new object[][] {new object[]{ 1, "2" }, new object[]{ 2, "3" }}; 
+		}
+		private List<List<object>> MIXED_OBJECT_NESTED_LISTS(){ 
+			var x = new List<List<object>> ();
+			x.Add(new List<object>(new object[] {1 ,"2"}));
+			x.Add(new List<object>(new object[] {2 ,"3"}));
+			return x;
+		}
+
+		// Dict
+		private Dictionary<string, int> STRING_INT_DICTIONARY() { 
+			return new Dictionary<string, int> {{"a", 1}, {"b", 2}}; 
+		}
+		private Dictionary<string, object> STRING_OBJECT_DICTIONARY() { 
+			return new Dictionary<string, object> {{"a", 1}, {"b", "2"}};
+		}
+		#endregion
 
 		#region ShallowClone
 		[Test]
 		public void ShallowCloneTest()
 		{
 			var list = new List<int> (new int[] {1 ,2});
-			var clonedList = F.shallowClone<List<int>, int>(list);
+			var clonedList = F.shallowClone<int, List<int>>(list);
 			list.Clear ();
 			Assert.AreEqual (list.Count, 0);
 			Assert.AreEqual (clonedList.Count, 2);
@@ -26,19 +75,33 @@ namespace UnityTest
 
 		#region Map
 		[Test]
-		public void MapListTest()
+		public void MapDictionaryTest()
 		{
-			var list = new List<int> (new int[] {1 ,2});
-			var mappedList = F.map<int, string>(x => (x * x).ToString(), list);
+			var mappedList = F.mapDictionary<string, int, string>((k, v) => String.Format("{0}{1}", k, v.ToString()), STRING_INT_DICTIONARY());
+			Assert.AreEqual (mappedList[0], "a1");
+			Assert.AreEqual (mappedList[1], "b2");
+		}
+
+		[Test]
+		public void MapHashSetTest()
+		{
+			var mappedList = F.map<int, string>(x => (x * x).ToString(), INT_SET());
 			Assert.AreEqual (mappedList[0], "1");
 			Assert.AreEqual (mappedList[1], "4");
 		}
 
 		[Test]
+		public void MapListTest()
+		{
+					var mappedList = F.map<int, string>(x => (x * x).ToString(), INT_LIST());
+			Assert.AreEqual (mappedList[0], "1");
+			Assert.AreEqual (mappedList[1], "4");
+		}
+			
+		[Test]
 		public void MapRectArrayTest()
 		{
-			object[,] rectArray = new object[,] { { 1, "2" }, { 2, "3" } };
-			var mappedList = F.map<object, string>(x => x[0].ToString() + x[1].ToString(), rectArray);
+					var mappedList = F.mapRectangularArray<object, string>(x => x[0].ToString() + x[1].ToString(), MIXED_OBJECT_RECT_ARRAY());
 			Assert.AreEqual (mappedList[0], "12");
 			Assert.AreEqual (mappedList[1], "23");
 		}
@@ -46,8 +109,15 @@ namespace UnityTest
 		[Test]
 		public void MapJaggedArrayTest()
 		{
-			object[][] rectArray = new object[][] { new object[]{ 1, "2" }, new object[]{ 2, "3" } };
-			var mappedList = F.map<object[], string>(x => x[0].ToString() + x[1].ToString(), rectArray);
+			var mappedList = F.map<object[], string>(x => x[0].ToString() + x[1].ToString(), MIXED_OBJECT_JAGGED_ARRAY());
+			Assert.AreEqual (mappedList[0], "12");
+			Assert.AreEqual (mappedList[1], "23");
+		}
+			
+		[Test]
+		public void MapNestedArrayTest()
+		{
+			var mappedList = F.map<List<object>, string>(x => x[0].ToString() + x[1].ToString(), MIXED_OBJECT_NESTED_LISTS());
 			Assert.AreEqual (mappedList[0], "12");
 			Assert.AreEqual (mappedList[1], "23");
 		}
@@ -58,9 +128,9 @@ namespace UnityTest
 		[Test]
 		public void ToPairsTest()
 		{
-			var dictionary = new Dictionary<string, int> ();
-			dictionary.Add ("a", 1);
-			dictionary.Add ("b", 2);
+			var dictionary = new Dictionary<string, int> {{"a", 1}, {"b", 2}};
+//			dictionary.Add ("a", 1);
+//			dictionary.Add ("b", 2);
 
 			var list = F.toPairs<string, int>(dictionary);
 			Assert.AreEqual (list[0, 0], "a");
@@ -71,6 +141,16 @@ namespace UnityTest
 		#endregion
 
 		#region FromPairs
+		[Test]
+		public void FromPairsJaggedArrayTest()
+		{
+			object[,] pairs = new object[,] { { 1, "2" }, { 2, "3" } };
+			Dictionary<int, string> dict = F.fromPairs<int, string>(pairs);
+			Assert.AreEqual (dict[1], "2");
+			Assert.AreEqual (dict[2], "3");
+		}
+
+
 		[Test]
 		public void FromPairsRectArrayTest()
 		{
