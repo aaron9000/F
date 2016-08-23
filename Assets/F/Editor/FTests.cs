@@ -13,6 +13,46 @@ namespace UnityTest
 	internal class FTests
 	{
 
+		#region Objects
+		private class ObjWithFields {
+			public int a;
+			public int b;
+			public ObjWithFields(){
+				this.a = 1;
+				this.b = 2;
+			}
+		}
+
+		private class ObjWithProperties {
+			public int a {get; set;}
+			public int b {get; set;}
+			public ObjWithProperties(){
+				this.a = 1;
+				this.b = 2;
+			}
+		}
+
+		private class ObjWithMixed {
+			public int a{get; set;}
+			public int b;
+			public ObjWithMixed(){
+				this.a = 1;
+				this.b = 2;
+			}
+		}
+
+		private ObjWithFields OBJECT_WITH_FIELDS() {
+			return new ObjWithFields();
+		}
+		private ObjWithProperties OBJECT_WITH_PROPERTIES() {
+			return new ObjWithProperties();
+		}
+		private ObjWithMixed OBJECT_WITH_MIXED() {
+			return new ObjWithMixed();
+		}
+		#endregion
+			
+
 		#region 1D Colections
 
 		// Uniform 1D
@@ -64,7 +104,7 @@ namespace UnityTest
 		[Test]
 		public void ShallowCloneTest()
 		{
-			var list = new List<int> (new int[] {1 ,2});
+			var list = INT_LIST();
 			var clonedList = F.shallowClone<int, List<int>>(list);
 			list.Clear ();
 			Assert.AreEqual (list.Count, 0);
@@ -72,6 +112,55 @@ namespace UnityTest
 			Assert.AreEqual (clonedList[0], 1);
 		}
 		#endregion
+
+		#region Key / Value
+		[Test]
+		public void GetObjectValueTest()
+		{
+			var a = F.getObjectValue<int>("a", OBJECT_WITH_MIXED());
+			var b = F.getObjectValue<int>("b", OBJECT_WITH_MIXED());
+			Assert.AreEqual (a, 1);
+			Assert.AreEqual (b, 2);
+		}
+
+		[Test]
+		public void GetDictionaryValueTest()
+		{
+			var a = F.getDictionaryValue("a", STRING_OBJECT_DICTIONARY());
+			Assert.AreEqual (a, 1);
+		}
+
+		[Test]
+		public void GetDictionaryKeys()
+		{
+			var a = F.getKeys(STRING_OBJECT_DICTIONARY());
+			Assert.AreEqual (a[0], "a");
+			Assert.AreEqual (a[1], "b");
+		}
+		[Test]
+		public void GetObjectKeys()
+		{
+			var a = F.getKeys(OBJECT_WITH_MIXED());
+			Assert.AreEqual (a[0], "a");
+			Assert.AreEqual (a[1], "b");
+		}
+
+		[Test]
+		public void GetDictionaryValues()
+		{
+			var a = F.getValues(STRING_OBJECT_DICTIONARY());
+			Assert.AreEqual (a[0], 1);
+			Assert.AreEqual (a[1], "2");
+		}
+		[Test]
+		public void GetObjectValues()
+		{
+			var a = F.getValues(OBJECT_WITH_MIXED());
+			Assert.AreEqual (a[0], 1);
+			Assert.AreEqual (a[1], 2);
+		}
+		#endregion
+
 
 		#region Map
 		[Test]
@@ -93,7 +182,7 @@ namespace UnityTest
 		[Test]
 		public void MapListTest()
 		{
-					var mappedList = F.map<int, string>(x => (x * x).ToString(), INT_LIST());
+			var mappedList = F.map<int, string>(x => (x * x).ToString(), INT_LIST());
 			Assert.AreEqual (mappedList[0], "1");
 			Assert.AreEqual (mappedList[1], "4");
 		}
@@ -101,7 +190,7 @@ namespace UnityTest
 		[Test]
 		public void MapRectArrayTest()
 		{
-					var mappedList = F.mapRectangularArray<object, string>(x => x[0].ToString() + x[1].ToString(), MIXED_OBJECT_RECT_ARRAY());
+			var mappedList = F.mapRectangularArray<object, string>(x => x[0].ToString() + x[1].ToString(), MIXED_OBJECT_RECT_ARRAY());
 			Assert.AreEqual (mappedList[0], "12");
 			Assert.AreEqual (mappedList[1], "23");
 		}
@@ -126,13 +215,39 @@ namespace UnityTest
 
 		#region ToPairs
 		[Test]
-		public void ToPairsTest()
+		public void ToPairsDictionaryTest()
 		{
-			var dictionary = new Dictionary<string, int> {{"a", 1}, {"b", 2}};
-//			dictionary.Add ("a", 1);
-//			dictionary.Add ("b", 2);
+			var list = F.toPairs<string, int>(STRING_INT_DICTIONARY());
+			Assert.AreEqual (list[0, 0], "a");
+			Assert.AreEqual (list[0, 1], 1);
+			Assert.AreEqual (list[1, 0], "b");
+			Assert.AreEqual (list[1, 1], 2);
+		}
 
-			var list = F.toPairs<string, int>(dictionary);
+		[Test]
+		public void ToPairsObjectWithFieldsTest()
+		{
+			var list = F.toPairs<string, int>(OBJECT_WITH_FIELDS());
+			Assert.AreEqual (list[0, 0], "a");
+			Assert.AreEqual (list[0, 1], 1);
+			Assert.AreEqual (list[1, 0], "b");
+			Assert.AreEqual (list[1, 1], 2);
+		}
+
+		[Test]
+		public void ToPairsObjectWithPropertiesTest()
+		{
+			var list = F.toPairs<string, int>(OBJECT_WITH_PROPERTIES());
+			Assert.AreEqual (list[0, 0], "a");
+			Assert.AreEqual (list[0, 1], 1);
+			Assert.AreEqual (list[1, 0], "b");
+			Assert.AreEqual (list[1, 1], 2);
+		}
+
+		[Test]
+		public void ToPairsObjectWithMixedTest()
+		{
+			var list = F.toPairs<string, int>(OBJECT_WITH_MIXED());
 			Assert.AreEqual (list[0, 0], "a");
 			Assert.AreEqual (list[0, 1], 1);
 			Assert.AreEqual (list[1, 0], "b");

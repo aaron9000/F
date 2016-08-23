@@ -8,6 +8,7 @@ using System.Linq;
 
 public static class F {
 
+	// TODO: make type
 	private const string PROP = "prop";
 	private const string FIELD = "field";
 
@@ -20,6 +21,8 @@ public static class F {
 		public Dictionary<string, FieldInfo> fieldTypeMap = new Dictionary<string, FieldInfo>();
 
 		public CachedTypeInfo(object obj){			
+			this.type = obj.GetType();
+			this.name = type.Name;
 			PropertyInfo[] props = this.type.GetProperties ();
 			foreach (var prop in props){
 				if (prop.CanRead) {
@@ -27,22 +30,16 @@ public static class F {
 					this.keyMap.Add(prop.Name, PROP);
 				}
 			}
-
 			FieldInfo[] fields = this.type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 			foreach (var field in fields){
 				this.fieldTypeMap.Add(field.Name, field);
 				this.keyMap.Add(field.Name, FIELD);
 			}
-
-			this.type = obj.GetType();
-			this.name = type.Name;
 		}
 	}
 
-	#region reflection & type helpers
-
+	#region Reflection & Type Helpers
 	private static Dictionary<string, CachedTypeInfo> _cachedTypeInfo = new Dictionary<string, CachedTypeInfo>();
-
 	private static CachedTypeInfo getTypeInfo(object obj){
 		string name = obj.GetType().Name;
 		if (_cachedTypeInfo.ContainsKey(name) == false){			
@@ -60,17 +57,14 @@ public static class F {
 		}
 		return default(T);
 	}
-	private static bool isCollection(Type t){
-		return (t.GetInterface ("ICollection") != null);
-	}
-
-	private static bool isDictionary(Type t){
-		return (t.GetInterface ("IDictionary") != null);
-	}
-	#endregion
-
-	#region type & value by key
-	public static Type getTypeForObjectKey(string key, object obj) {
+//	private static bool isCollection(object obj){
+//		return (obj.GetType().GetInterface ("ICollection") != null);
+//	}
+//
+//	private static bool isDictionary(object obj){
+//		return (obj.GetType().GetInterface ("IDictionary") != null);
+//	}
+	private static Type getTypeForObjectKey(string key, object obj) {
 		if (obj == null)
 			return default(Type);
 		var info = getTypeInfo(obj);
@@ -80,27 +74,38 @@ public static class F {
 		}
 		return default(Type);
 	}
-		
-	public static T getValueForObjectKey<T>(string key, object obj) {
+	#endregion
+
+
+
+	#region Key / Value
+	public static object getDictionaryValue(string key, IDictionary<string, object> dictionary) {
+		if (dictionary == null || !dictionary.ContainsKey(key))
+			return null;
+		return dictionary[key];
+	}
+	public static object getObjectValue<T>(string key, object obj) {
 		if (obj == null)
 			return default(T);
 		var info = getTypeInfo(obj);
 		return getValueForObjectKeyFast<T>(key, info, obj);
 	}
-	#endregion
-
-
+	public static string[] getKeys(IDictionary<string, object> dict){
+		return dict.Keys.ToArray();
+	}
 	public static string[] getKeys(object obj){
 		return getTypeInfo(obj).keyMap.Keys.ToArray();
 	}
-
+	public static object[] getValues(IDictionary<string, object> dict){
+		return dict.Values.ToArray();
+	}
 	public static object[] getValues(object obj){
 		var info = getTypeInfo(obj);
 		object[] values = new object[info.keyMap.Keys.Count];
 		int index = 0;
 		foreach (string key in info.keyMap.Keys){
-			index++;
 			values[index] = getValueForObjectKeyFast<object>(key, info, obj);
+			index++;
 		}
 		return values;
 	}
@@ -108,7 +113,17 @@ public static class F {
 	public static T identity<T>(T value){
 		return value;
 	}
+	#endregion
 
+	#region Merge
+
+	#endregion
+
+	#region Assignment
+
+	#endregion
+
+	#region Cloning
 	// TODO: want shallow clone of: collection, object, struct, dictionary
 	public static TCollection shallowClone<TElement, TCollection>(TCollection source) where TCollection: ICollection<TElement>, new(){
 		TCollection clone = new TCollection ();
@@ -118,6 +133,7 @@ public static class F {
 		}
 		return clone;
 	}
+	#endregion
 		
 	#region Map
 	public static TOutputElement[] mapDictionary<TInputKey, TInputValue, TOutputElement>(Func<TInputKey, TInputValue, TOutputElement> mappingFunction, IDictionary<TInputKey, TInputValue> dictionary){
@@ -129,7 +145,6 @@ public static class F {
 		}
 		return newArray;
 	}
-
 	public static TOutputElement[] map<TInputElement, TOutputElement>(Func<TInputElement, TOutputElement> mappingFunction, IEnumerable<TInputElement> collection){
 		var newList = new List<TOutputElement>();
 		foreach(TInputElement value in collection){
@@ -178,14 +193,17 @@ public static class F {
 	#endregion
 
 	#region ToPairs
-	// TODO: probably dont want lists of lists
-//	public static object[,] toPairs<TKey, TValue>(object obj){		
-//		object[,] pairs = new object[0, 2];
-//		foreach(TKey key in []){
-//			pairs.Add (new List<object> (new object[] { key, dict [key] }));
-//		}
-//		return pairs;
-//	}
+	public static object[,] toPairs<TKey, TValue>(object obj){		
+		var info = getTypeInfo(obj);
+		object[,] pairs = new object[info.keyMap.Keys.Count, 2];
+		int index = 0;
+		foreach (string key in info.keyMap.Keys){
+			pairs[index, 0] = key;
+			pairs[index, 1] = getValueForObjectKeyFast<object>(key, info, obj);
+			index++;
+		}
+		return pairs;
+	}
 	public static object[,] toPairs<TKey, TValue>(Dictionary<TKey, TValue> dict){
 		object[,] pairs = new object[dict.Keys.Count, 2];
 		int index = 0;
@@ -198,7 +216,7 @@ public static class F {
 	}
 	#endregion
 
-	#region reduce
+	#region Reduce
 	public static TAccum reduce<TAccum, TElement> (Func<TAccum, TElement, TAccum> reducingFunction, TAccum startValue, IEnumerable<TElement> list) {
 		// TODO: shallowClone if not a value type
 		TAccum accum = startValue;
