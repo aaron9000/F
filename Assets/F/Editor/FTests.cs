@@ -108,7 +108,7 @@ namespace UnityTest
 
         private static object[][] MIXED_OBJECT_JAGGED_ARRAY()
         {
-            return new object[][] {new object[] {"1", 2}, new object[] {"2", 3}};
+            return new [] {new object[] {"1", 2}, new object[] {"2", 3}};
         }
 
         private static List<List<object>> MIXED_OBJECT_NESTED_LISTS()
@@ -138,7 +138,7 @@ namespace UnityTest
         public void ShallowCloneListTest()
         {
             var list = INT_LIST();
-            var clonedList = F.shallowCloneCollection<int, List<int>>(list);
+            var clonedList = F.ShallowCloneCollection<int, List<int>>(list);
             list.Clear();
             Assert.AreEqual(list.Count, 0);
             Assert.AreEqual(clonedList.Count, 2);
@@ -149,7 +149,7 @@ namespace UnityTest
         public void ShallowCloneDictionaryTest()
         {
             var dict = STRING_OBJECT_DICTIONARY();
-            var clonedDict = F.shallowCloneDictionary<string, object, Dictionary<string, object>>(dict);
+            var clonedDict = F.ShallowCloneDictionary<string, object, Dictionary<string, object>>(dict);
             dict.Clear();
             Assert.AreEqual(dict.Count, 0);
             Assert.AreEqual(clonedDict.Count, 2);
@@ -164,8 +164,8 @@ namespace UnityTest
         public void GetObjectValueTest()
         {
             var obj = OBJECT_WITH_MIXED();
-            var a = F.getValue<int>("a", obj);
-            var b = F.getValue<int>("b", obj);
+            var a = F.GetValue<int>("a", obj);
+            var b = F.GetValue<int>("b", obj);
             Assert.AreEqual(a, 1);
             Assert.AreEqual(b, 2);
         }
@@ -173,48 +173,48 @@ namespace UnityTest
         [Test]
         public void GetDictionaryValueTest()
         {
-            var a = F.getValue<int>("a", STRING_OBJECT_DICTIONARY());
+            var a = F.GetValue<int>("a", STRING_OBJECT_DICTIONARY());
             Assert.AreEqual(a, 1);
         }
 
         [Test]
-        public void GetDictionaryKeys()
+        public void GetDictionaryKeysTest()
         {
-            var a = F.getKeys(STRING_OBJECT_DICTIONARY());
+            var a = F.GetKeys(STRING_OBJECT_DICTIONARY());
             Assert.AreEqual(a[0], "a");
             Assert.AreEqual(a[1], "b");
         }
 
         [Test]
-        public void GetObjectKeys()
+        public void GetObjectKeysTest()
         {
-            var a = F.getKeys(OBJECT_WITH_MIXED());
+            var a = F.GetKeys(OBJECT_WITH_MIXED());
             Assert.AreEqual(a[0], "a");
             Assert.AreEqual(a[1], "b");
         }
 
         [Test]
-        public void GetDictionaryValues()
+        public void GetDictionaryValuesTest()
         {
-            var a = F.getValues(STRING_OBJECT_DICTIONARY());
+            var a = F.GetValues(STRING_OBJECT_DICTIONARY());
             Assert.AreEqual(a[0], 1);
             Assert.AreEqual(a[1], "2");
         }
 
         [Test]
-        public void GetObjectValues()
+        public void GetObjectValuesTest()
         {
-            var a = F.getValues(OBJECT_WITH_MIXED());
+            var a = F.GetValues(OBJECT_WITH_MIXED());
             Assert.AreEqual(a[0], 1);
             Assert.AreEqual(a[1], 2);
         }
 
         [Test]
-        public void SetObjectValue()
+        public void SetObjectValueTest()
         {
             var obj = OBJECT_WITH_MIXED();
-            F.setValue("a", 22, obj);
-            F.setValue("b", 33, obj);
+            F.SetValue("a", 22, obj);
+            F.SetValue("b", 33, obj);
             Assert.AreEqual(obj.a, 22);
             Assert.AreEqual(obj.b, 33);
         }
@@ -226,7 +226,7 @@ namespace UnityTest
         [Test]
         public void MapObjectTest()
         {
-            var mappedList = F.mapObject((k, v) => String.Format("{0}{1}", k, v.ToString()),
+            var mappedList = F.MapObject((k, v) => String.Format("{0}{1}", k, v.ToString()),
                 OBJECT_WITH_MIXED());
             Assert.AreEqual(mappedList[0], "a1");
             Assert.AreEqual(mappedList[1], "b2");
@@ -235,7 +235,7 @@ namespace UnityTest
         [Test]
         public void MapDictionaryTest()
         {
-            var mappedList = F.mapDictionary((k, v) => String.Format("{0}{1}", k, v.ToString()),
+            var mappedList = F.MapDictionary((k, v) => String.Format("{0}{1}", k, v.ToString()),
                 STRING_OBJECT_DICTIONARY());
             Assert.AreEqual(mappedList[0], "a1");
             Assert.AreEqual(mappedList[1], "b2");
@@ -244,7 +244,7 @@ namespace UnityTest
         [Test]
         public void MapHashSetTest()
         {
-            var mappedList = F.map(x => (x * x).ToString(), INT_SET());
+            var mappedList = F.Map(x => (x * x).ToString(), INT_SET());
             Assert.AreEqual(mappedList[0], "1");
             Assert.AreEqual(mappedList[1], "4");
         }
@@ -252,7 +252,7 @@ namespace UnityTest
         [Test]
         public void MapListTest()
         {
-            var mappedList = F.map(x => (x * x).ToString(), INT_LIST());
+            var mappedList = F.Map(x => (x * x).ToString(), INT_LIST());
             Assert.AreEqual(mappedList[0], "1");
             Assert.AreEqual(mappedList[1], "4");
         }
@@ -260,7 +260,7 @@ namespace UnityTest
         [Test]
         public void MapRectArrayTest()
         {
-            var mappedList = F.mapRectangularArray(x => x[0].ToString() + x[1].ToString(),
+            var mappedList = F.MapRectangularArray(x => x[0].ToString() + x[1].ToString(),
                 MIXED_OBJECT_RECT_ARRAY());
             Assert.AreEqual(mappedList[0], "12");
             Assert.AreEqual(mappedList[1], "23");
@@ -269,7 +269,7 @@ namespace UnityTest
         [Test]
         public void MapJaggedArrayTest()
         {
-            var mappedList = F.map(x => x[0].ToString() + x[1].ToString(), MIXED_OBJECT_JAGGED_ARRAY());
+            var mappedList = F.Map(x => x[0].ToString() + x[1].ToString(), MIXED_OBJECT_JAGGED_ARRAY());
             Assert.AreEqual(mappedList[0], "12");
             Assert.AreEqual(mappedList[1], "23");
         }
@@ -277,7 +277,7 @@ namespace UnityTest
         [Test]
         public void MapNestedArrayTest()
         {
-            var mappedList = F.map(x => x[0].ToString() + x[1].ToString(), MIXED_OBJECT_NESTED_LISTS());
+            var mappedList = F.Map(x => x[0].ToString() + x[1].ToString(), MIXED_OBJECT_NESTED_LISTS());
             Assert.AreEqual(mappedList[0], "12");
             Assert.AreEqual(mappedList[1], "23");
         }
@@ -289,7 +289,7 @@ namespace UnityTest
         [Test]
         public void ToPairsDictionaryTest()
         {
-            var list = F.toPairs(STRING_INT_DICTIONARY());
+            var list = F.ToPairs(STRING_INT_DICTIONARY());
             Assert.AreEqual(list[0, 0], "a");
             Assert.AreEqual(list[0, 1], 1);
             Assert.AreEqual(list[1, 0], "b");
@@ -299,7 +299,7 @@ namespace UnityTest
         [Test]
         public void ToPairsObjectWithFieldsTest()
         {
-            var list = F.toPairs(OBJECT_WITH_FIELDS());
+            var list = F.ToPairs(OBJECT_WITH_FIELDS());
             Assert.AreEqual(list[0, 0], "a");
             Assert.AreEqual(list[0, 1], 1);
             Assert.AreEqual(list[1, 0], "b");
@@ -309,7 +309,7 @@ namespace UnityTest
         [Test]
         public void ToPairsObjectWithPropertiesTest()
         {
-            var list = F.toPairs(OBJECT_WITH_PROPERTIES());
+            var list = F.ToPairs(OBJECT_WITH_PROPERTIES());
             Assert.AreEqual(list[0, 0], "a");
             Assert.AreEqual(list[0, 1], 1);
             Assert.AreEqual(list[1, 0], "b");
@@ -319,7 +319,7 @@ namespace UnityTest
         [Test]
         public void ToPairsObjectWithMixedTest()
         {
-            var list = F.toPairs(OBJECT_WITH_MIXED());
+            var list = F.ToPairs(OBJECT_WITH_MIXED());
             Assert.AreEqual(list[0, 0], "a");
             Assert.AreEqual(list[0, 1], 1);
             Assert.AreEqual(list[1, 0], "b");
@@ -333,7 +333,7 @@ namespace UnityTest
         [Test]
         public void FromPairsJaggedArrayTest()
         {
-            var dict = F.fromPairs(MIXED_OBJECT_JAGGED_ARRAY());
+            var dict = F.FromPairs(MIXED_OBJECT_JAGGED_ARRAY());
             Assert.AreEqual(dict["1"], 2);
             Assert.AreEqual(dict["2"], 3);
         }
@@ -341,14 +341,14 @@ namespace UnityTest
         [Test]
         public void FromPairsRectArrayTest()
         {
-            var dict = F.fromPairs(MIXED_OBJECT_RECT_ARRAY());
+            var dict = F.FromPairs(MIXED_OBJECT_RECT_ARRAY());
             Assert.AreEqual(dict["1"], 2);
             Assert.AreEqual(dict["2"], 3);
         }
 
         public void FromPairsArrayTest()
         {
-            var dict = F.fromPairs(MIXED_OBJECT_NESTED_LISTS());
+            var dict = F.FromPairs(MIXED_OBJECT_NESTED_LISTS());
             Assert.AreEqual(dict["1"], 2);
             Assert.AreEqual(dict["2"], 3);
         }
@@ -360,7 +360,7 @@ namespace UnityTest
         [Test]
         public void ShallowFlattenListTest()
         {
-            var list = F.shallowFlatten(MIXED_OBJECT_NESTED_LISTS());
+            var list = F.ShallowFlatten(MIXED_OBJECT_NESTED_LISTS());
             Assert.AreEqual(list[0], "1");
             Assert.AreEqual(list[1], 2);
             Assert.AreEqual(list[2], "2");
@@ -370,7 +370,7 @@ namespace UnityTest
         [Test]
         public void ShallowFlattenJaggedArrayTest()
         {
-            var list = F.shallowFlatten(MIXED_OBJECT_JAGGED_ARRAY());
+            var list = F.ShallowFlatten(MIXED_OBJECT_JAGGED_ARRAY());
             Assert.AreEqual(list[0], "1");
             Assert.AreEqual(list[1], 2);
             Assert.AreEqual(list[2], "2");
@@ -380,7 +380,7 @@ namespace UnityTest
         [Test]
         public void ShallowFlattenRectArrayTest()
         {
-            var list = F.shallowFlatten(MIXED_OBJECT_RECT_ARRAY());
+            var list = F.ShallowFlatten(MIXED_OBJECT_RECT_ARRAY());
             Assert.AreEqual(list[0], "1");
             Assert.AreEqual(list[1], 2);
             Assert.AreEqual(list[2], "2");
@@ -395,7 +395,7 @@ namespace UnityTest
         public void ReduceValueTest()
         {
             var list = new List<int>(new[] {1, 2});
-            var reducedValue = F.reduce((accum, value) => { return accum + value; }, 0, list);
+            var reducedValue = F.Reduce((accum, value) => accum + value, 0, list);
             Assert.AreEqual(reducedValue, 3);
         }
 
@@ -403,7 +403,7 @@ namespace UnityTest
         public void ReduceCollectionTest()
         {
             var list = new List<bool>(new[] {false, true, true});
-            var reducedCollection = F.reduce((accum, value) =>
+            var reducedCollection = F.Reduce((accum, value) =>
             {
                 accum.Add(value ? 1 : 0);
                 return accum;
@@ -445,13 +445,16 @@ namespace UnityTest
         [Test]
         public void ExampleTest()
         {
-//      var a = F.toPairs(new ObjectA());
-//		  var a = F.toPairs(new ObjectA());
-//      var b = F.mapRectangularArray<object, object>(pair => pair, a);
+//            var objA = new ObjectA();
+//            var a = F.ShallowDictionaryFromObject(objA);
+
+//      var a = F.ToPairs(new ObjectA());
+//		  var a = F.ToPairs(new ObjectA());
+//      var b = F.MapRectangularArray<object, object>(pair => pair, a);
 //      var c = F.filter(pair => ((string) pair[0]).EndsWith("old"));
 //		  var d = F.instantiateWithDictionary();
 //			var list = new List<bool> (new bool[] {false, true, true});
-//			var reducedCollection = F.reduce<List<int>, bool> ((accum, value) => {
+//			var reducedCollection = F.Reduce<List<int>, bool> ((accum, value) => {
 //				accum.Add(value ? 1 : 0);
 //				return accum;
 //			}, new List<int>(), list);

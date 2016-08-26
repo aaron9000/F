@@ -4,80 +4,81 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Collections;
 using System.Linq;
-using Mono.CompilerServices.SymbolWriter;
+using JetBrains.Annotations;
+using NSubstitute.Core;
 
 
 public static class F
 {
     private class KeyInfo
     {
-        public FieldInfo fieldInfo;
-        public PropertyInfo propertyInfo;
+        private readonly FieldInfo _fieldInfo;
+        private readonly PropertyInfo _propertyInfo;
 
         public KeyInfo(PropertyInfo p)
         {
-            fieldInfo = null;
-            propertyInfo = p;
+            _fieldInfo = null;
+            _propertyInfo = p;
         }
 
         public KeyInfo(FieldInfo f)
         {
-            fieldInfo = f;
-            propertyInfo = null;
+            _fieldInfo = f;
+            _propertyInfo = null;
         }
 
-        public object getValue(object obj)
+        public object GetValue(object obj)
         {
-            return fieldInfo != null ? fieldInfo.GetValue(obj) : propertyInfo.GetValue(obj, null);
+            return _fieldInfo != null ? _fieldInfo.GetValue(obj) : _propertyInfo.GetValue(obj, null);
         }
 
-        public void setValueHelper(object obj, object value)
+        public void SetValue(object obj, object value)
         {
-            if (fieldInfo != null)
+            if (_fieldInfo != null)
             {
-                fieldInfo.SetValue(obj, value);
+                _fieldInfo.SetValue(obj, value);
             }
             else
             {
-                propertyInfo.SetValue(obj, value, null);
+                _propertyInfo.SetValue(obj, value, null);
             }
-            ;
         }
     }
 
     private class CachedReflectionInfo
     {
-        public readonly Type type;
-        public readonly Dictionary<string, KeyInfo> keyInfo = new Dictionary<string, KeyInfo>();
-        public readonly HashSet<string> keySet;
+        public readonly Dictionary<string, KeyInfo> Info = new Dictionary<string, KeyInfo>();
+        public readonly HashSet<string> KeySet;
 
         public CachedReflectionInfo(object obj)
         {
-            type = obj.GetType();
-            var props = type.GetProperties();
+            var t = obj.GetType();
+            var props = t.GetProperties();
             foreach (var prop in props)
             {
                 if (prop.CanRead)
                 {
-                    keyInfo.Add(prop.Name, new KeyInfo(prop));
+                    Info.Add(prop.Name, new KeyInfo(prop));
                 }
             }
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var fields = t.GetFields(BindingFlags.Public | BindingFlags.Instance);
             foreach (var field in fields)
             {
-                keyInfo.Add(field.Name, new KeyInfo(field));
+                Info.Add(field.Name, new KeyInfo(field));
             }
-            keySet = new HashSet<string>(keyInfo.Keys.ToArray());
+            KeySet = new HashSet<string>(Info.Keys.ToArray());
         }
     }
 
     #region Reflection & Type Helpers
 
-    private static Dictionary<string, CachedReflectionInfo> _cachedTypeInfo =
+    private static readonly Dictionary<string, CachedReflectionInfo> _cachedTypeInfo =
         new Dictionary<string, CachedReflectionInfo>();
 
-    private static CachedReflectionInfo getReflectionInfo(object obj)
+    private static CachedReflectionInfo GetReflectionInfo(object obj)
     {
+        if (obj == null)
+            return null;
         var name = obj.GetType().Name;
         if (_cachedTypeInfo.ContainsKey(name) == false)
         {
@@ -86,102 +87,92 @@ public static class F
         return _cachedTypeInfo[name];
     }
 
-    private static T getObjectValueFast<T>(string key, object subject, CachedReflectionInfo info)
+    private static T GetObjectValueFast<T>(string key, object subject, CachedReflectionInfo info)
     {
         if (subject == null)
             return default(T);
-        if (info.keyInfo.ContainsKey(key))
+        if (info.Info.ContainsKey(key))
         {
-            return (T) info.keyInfo[key].getValue(subject);
+            return (T) info.Info[key].GetValue(subject);
         }
         return default(T);
     }
 
-    private static void setObjectValueFast(string key, object value, object subject, CachedReflectionInfo info)
+    private static void SetObjectValueFast(string key, object value, object subject, CachedReflectionInfo info)
     {
         if (subject == null)
             return;
-        if (info.keyInfo.ContainsKey(key))
+        if (info.Info.ContainsKey(key))
         {
-            info.keyInfo[key].setValueHelper(subject, value);
+            info.Info[key].SetValue(subject, value);
         }
     }
-
-    // TODO: do we want this?
-//	private static Type getTypeForObjectKey(string key, object obj) {
-//		if (obj == null)
-//			return default(Type);
-//		var info = getReflectionInfo(obj);
-//		if (info.keySet.Contains(key)){
-//			return info.keyInfo[key].type;
-//		}
-//		return default(Type);
-//	}
-    //	private static bool isCollection(object obj){
-    //		return (obj.GetType().GetInterface ("ICollection") != null);
-    //	}
-    //
-    //	private static bool isDictionary(object obj){
-    //		return (obj.GetType().GetInterface ("IDictionary") != null);
-    //	}
 
     #endregion
 
     #region Key / Value (maybe get rid of dict stuff?)
 
-    public static T getValue<T>(string key, IDictionary<string, object> dictionary)
+    public static T GetValue<T>(string key, IDictionary<string, object> dictionary)
     {
         if (dictionary == null || !dictionary.ContainsKey(key))
             return default(T);
         return (T) dictionary[key];
     }
 
-    public static T getValue<T>(string key, object subject)
+    public static T GetValue<T>(string key, object subject)
     {
         if (subject == null)
             return default(T);
-        var info = getReflectionInfo(subject);
-        return getObjectValueFast<T>(key, subject, info);
+        var info = GetReflectionInfo(subject);
+        return GetObjectValueFast<T>(key, subject, info);
     }
 
-    public static void setValue(string key, object value, object subject)
+    public static void SetValue(string key, object value, object subject)
     {
         if (subject == null)
             return;
-        var info = getReflectionInfo(subject);
-        setObjectValueFast(key, value, subject, info);
+        var info = GetReflectionInfo(subject);
+        SetObjectValueFast(key, value, subject, info);
     }
 
-    public static void setValue(string key, object value, IDictionary<string, object> subject)
+    public static void SetValue(string key, object value, IDictionary<string, object> subject)
     {
         if (subject == null)
             return;
         subject.Add(key, value);
     }
 
-    public static string[] getKeys(IDictionary<string, object> dict)
+    public static string[] GetKeys(IDictionary<string, object> dict)
     {
+        if (dict == null)
+            return new string[0];
         return dict.Keys.ToArray();
     }
 
-    public static string[] getKeys(object obj)
+    public static string[] GetKeys(object obj)
     {
-        return getReflectionInfo(obj).keySet.ToArray();
+        if (obj == null)
+            return new string[0];
+        return GetReflectionInfo(obj).KeySet.ToArray();
     }
 
-    public static object[] getValues(IDictionary<string, object> dict)
+    public static object[] GetValues(IDictionary<string, object> dict)
     {
+        if (dict == null)
+            return new object[0];
         return dict.Values.ToArray();
     }
 
-    public static object[] getValues(object obj)
+    public static object[] GetValues(object obj)
     {
-        var info = getReflectionInfo(obj);
-        var values = new object[info.keySet.Count];
+        if (obj == null)
+            return new object[0];
+        var info = GetReflectionInfo(obj);
+        var values = new object[info.KeySet.Count];
         var index = 0;
-        foreach (var key in info.keySet)
+        foreach (var key in info.KeySet)
         {
-            values[index] = getObjectValueFast<object>(key, obj, info);
+            values[index] = GetObjectValueFast<object>(key, obj, info);
             index++;
         }
         return values;
@@ -193,40 +184,54 @@ public static class F
 
     #endregion
 
-    #region shallowDictionary
-
-
-    #endregion
-
     #region Cloning & Converting Collections and Objects
 
-    public static Dictionary<string, object> shallowDictionaryValue(object obj)
+    public static T ShallowObjectFromDictionary<T>(Dictionary<string, object> dict) where T : new()
     {
-        var info = getReflectionInfo(obj);
-        var dict = new Dictionary<string, object>();
-        foreach (var key in info.keySet)
+        if (dict == null)
+            return default(T);
+        var obj = new T();
+        var info = GetReflectionInfo(obj);
+        foreach (var key in info.KeySet)
         {
-            dict.Add(key, getObjectValueFast<object>(key, obj, info));
+            SetObjectValueFast(key, dict[key], obj, info);
+        }
+        return obj;
+    }
+
+    public static Dictionary<string, object> ShallowDictionaryFromObject(object obj)
+    {
+        if (obj == null)
+            return null;
+        var info = GetReflectionInfo(obj);
+        var dict = new Dictionary<string, object>();
+        foreach (var key in info.KeySet)
+        {
+            dict.Add(key, GetObjectValueFast<object>(key, obj, info));
         }
         return dict;
     }
 
-    public static T shallowCloneObject<T>(T source) where T : new()
+    public static T ShallowCloneObject<T>(T source) where T : new()
     {
+        if (source == null)
+            return default(T);
         var clone = new T();
-        var info = getReflectionInfo(source);
-        foreach (var key in info.keySet)
+        var info = GetReflectionInfo(source);
+        foreach (var key in info.KeySet)
         {
-            var value = getObjectValueFast<object>(key, source, info);
-            setObjectValueFast(key, value, clone, info);
-
+            var value = GetObjectValueFast<object>(key, source, info);
+            SetObjectValueFast(key, value, clone, info);
         }
         return clone;
     }
 
-    public static IDictionary<TKey, TValue> shallowCloneDictionary<TKey, TValue, TDictionary>(IDictionary<TKey, TValue> source)
+    public static IDictionary<TKey, TValue> ShallowCloneDictionary<TKey, TValue, TDictionary>(
+        IDictionary<TKey, TValue> source)
         where TDictionary : IDictionary<TKey, TValue>, new()
     {
+        if (source == null)
+            return null;
         var clone = new TDictionary();
         foreach (var pair in source)
         {
@@ -235,10 +240,12 @@ public static class F
         return clone;
     }
 
-    public static TCollection shallowCloneCollection<TElement, TCollection>(TCollection source)
-        where TCollection : ICollection<TElement>, new()
+    public static TEnumerable ShallowCloneCollection<TElement, TEnumerable>(TEnumerable source)
+        where TEnumerable : ICollection<TElement>, new()
     {
-        var clone = new TCollection();
+        if (source == null)
+            return default(TEnumerable);
+        var clone = new TEnumerable();
         foreach (var value in source)
         {
             clone.Add(value);
@@ -250,23 +257,27 @@ public static class F
 
     #region Map
 
-    public static TOutputElement[] mapObject<TOutputElement>(Func<string, object, TOutputElement> mappingFunction,
+    public static TOutputElement[] MapObject<TOutputElement>(Func<string, object, TOutputElement> mappingFunction,
         object obj)
     {
-        var info = getReflectionInfo(obj);
-        var newArray = new TOutputElement[info.keySet.Count];
+        if (obj == null)
+            return new TOutputElement[0];
+        var info = GetReflectionInfo(obj);
+        var newArray = new TOutputElement[info.KeySet.Count];
         var index = 0;
-        foreach (var key in info.keySet)
+        foreach (var key in info.KeySet)
         {
-            newArray[index] = mappingFunction(key, info.keyInfo[key].getValue(obj));
+            newArray[index] = mappingFunction(key, info.Info[key].GetValue(obj));
             index++;
         }
         return newArray;
     }
 
-    public static TOutputElement[] mapDictionary<TOutputElement>(Func<string, object, TOutputElement> mappingFunction,
+    public static TOutputElement[] MapDictionary<TOutputElement>(Func<string, object, TOutputElement> mappingFunction,
         IDictionary<string, object> dictionary)
     {
+        if (dictionary == null)
+            return new TOutputElement[0];
         var newArray = new TOutputElement[dictionary.Keys.Count];
         var index = 0;
         foreach (var entry in dictionary)
@@ -277,21 +288,25 @@ public static class F
         return newArray;
     }
 
-    public static TOutputElement[] map<TInputElement, TOutputElement>(
+    public static TOutputElement[] Map<TInputElement, TOutputElement>(
         Func<TInputElement, TOutputElement> mappingFunction,
-        IEnumerable<TInputElement> collection)
+        IEnumerable<TInputElement> values)
     {
+        if (values == null)
+            return new TOutputElement[0];
         var newList = new List<TOutputElement>();
-        foreach (var value in collection)
+        foreach (var value in values)
         {
             newList.Add(mappingFunction(value));
         }
         return newList.ToArray();
     }
 
-    public static TOutputElement[] mapRectangularArray<TInputElement, TOutputElement>(
+    public static TOutputElement[] MapRectangularArray<TInputElement, TOutputElement>(
         Func<TInputElement[], TOutputElement> mappingFunction, TInputElement[,] rectArray)
     {
+        if (rectArray == null)
+            return new TOutputElement[0];
         var newArray = new TOutputElement[rectArray.GetLength(0)];
         var innerLength = rectArray.GetLength(1);
         var row = new TInputElement[innerLength];
@@ -308,15 +323,13 @@ public static class F
 
     #endregion
 
-    #region toDictionary
-
-    #endregion
-
     #region FromPairs
 
-    public static Dictionary<string, object> fromPairs(object[][] pairs)
+    public static Dictionary<string, object> FromPairs(object[][] pairs)
     {
         var newDict = new Dictionary<string, object>();
+        if (pairs == null)
+            return newDict;
         foreach (var pair in pairs)
         {
             newDict.Add((string) pair[0], pair[1]);
@@ -324,9 +337,11 @@ public static class F
         return newDict;
     }
 
-    public static Dictionary<string, object> fromPairs(ICollection<List<object>> pairs)
+    public static Dictionary<string, object> FromPairs(ICollection<List<object>> pairs)
     {
         var newDict = new Dictionary<string, object>();
+        if (pairs == null)
+            return newDict;
         foreach (var pair in pairs)
         {
             newDict.Add((string) pair[0], pair[1]);
@@ -334,7 +349,7 @@ public static class F
         return newDict;
     }
 
-    public static Dictionary<string, object> fromPairs(object[,] pairs)
+    public static Dictionary<string, object> FromPairs(object[,] pairs)
     {
         var newDict = new Dictionary<string, object>();
         for (var i = 0; i < pairs.GetLength(0); i++)
@@ -348,21 +363,21 @@ public static class F
 
     #region ToPairs
 
-    public static object[,] toPairs(object obj)
+    public static object[,] ToPairs(object obj)
     {
-        var info = getReflectionInfo(obj);
-        var pairs = new object[info.keySet.Count, 2];
+        var info = GetReflectionInfo(obj);
+        var pairs = new object[info.KeySet.Count, 2];
         var index = 0;
-        foreach (var key in info.keySet)
+        foreach (var key in info.KeySet)
         {
             pairs[index, 0] = key;
-            pairs[index, 1] = getObjectValueFast<object>(key, obj, info);
+            pairs[index, 1] = GetObjectValueFast<object>(key, obj, info);
             index++;
         }
         return pairs;
     }
 
-    public static object[,] toPairs<TKey, TValue>(IDictionary<TKey, TValue> dict)
+    public static object[,] ToPairs<TKey, TValue>(IDictionary<TKey, TValue> dict)
     {
         var pairs = new object[dict.Keys.Count, 2];
         var index = 0;
@@ -379,10 +394,10 @@ public static class F
 
     #region Reduce
 
-    public static TAccum reduce<TAccum, TElement>(Func<TAccum, TElement, TAccum> reducingFunction, TAccum startValue,
+    public static TAccum Reduce<TAccum, TElement>(Func<TAccum, TElement, TAccum> reducingFunction, TAccum startValue,
         IEnumerable<TElement> list)
     {
-        // TODO: shallowClone if not a value type
+        // TODO: shallowClone if not a value Type?
         var accum = startValue;
         foreach (var value in list)
         {
@@ -393,39 +408,84 @@ public static class F
 
     #endregion
 
-    // Filter
-    public static List<TElement> filter<TElement>(Func<TElement, bool> filteringFunction,
-        IEnumerable<TElement> collection)
+    public static Dictionary<string, object> Zip(IEnumerable<string> keys, IEnumerable<object> values)
     {
-        return null;
+        var dict = new Dictionary<string, object>();
+        var k = keys.GetEnumerator();
+        var v = values.GetEnumerator();
+        while (k.MoveNext() && v.MoveNext())
+        {
+            dict[k.Current] = v.Current;
+        }
+        return dict;
     }
 
-
-    // Zip
-    public static Dictionary<TKey, TValue> zip<TKey, TValue>(IEnumerable<TKey> keys, IEnumerable<TValue> values)
+    public static Dictionary<string, object> Zip(object[,] pairs)
     {
-        return null;
+        var dict = new Dictionary<string, object>();
+        var length = pairs.GetLength(0);
+        for (var i = 0; i < length; i++)
+        {
+            dict[(string) pairs[i, 0]] = pairs[i, 1];
+        }
+        return dict;
     }
 
-
-    // Pluck
-    public static List<TPluckedValue> pluck<TElement, TPluckedValue>(string key, IEnumerable<TElement> collection)
+    public static TPluckedValue[] Pluck<TPluckedValue>(string key, IEnumerable<Dictionary<string, object>> values)
     {
-//		if (isDictionary())
-        return null;
+        var plucked = new List<TPluckedValue>();
+        foreach (var dict in values)
+        {
+            plucked.Add((TPluckedValue) dict[key]);
+        }
+        return plucked.ToArray();
     }
 
-    // Unique
+    public static TPluckedValue[] Pluck<TPluckedValue>(string key, IEnumerable<object> values)
+    {
+        var first = values.FirstOrDefault();
+        if (first == null)
+            return new TPluckedValue[0];
+
+        var pluckedValues = new List<TPluckedValue>();
+        var info = GetReflectionInfo(first);
+        foreach (var value in values)
+        {
+            pluckedValues.Add(GetObjectValueFast<TPluckedValue>(key, value, info));
+        }
+        return pluckedValues.ToArray();
+    }
 
     // Merge
 
     #region PickAll
 
+    public static Dictionary<string, object> PickAll(IEnumerable<string> keys, object subject)
+    {
+        var dict = new Dictionary<string, object>();
+        var info = GetReflectionInfo(subject);
+        foreach (var key in keys)
+        {
+            dict.Add(key, GetObjectValueFast<object>(key, subject, info));
+        }
+        return dict;
+    }
+
+    public static Dictionary<string, object> PickAll(IEnumerable<string> keys, Dictionary<string, object> subject)
+    {
+        var dict = new Dictionary<string, object>();
+        foreach (var key in keys)
+        {
+            dict.Add(key, subject[key]);
+        }
+        return dict;
+    }
+
     #endregion
 
     #region ShallowFlatten
 
-    public static TElement[] shallowFlatten<TElement>(TElement[,] array)
+    public static TElement[] ShallowFlatten<TElement>(TElement[,] array)
     {
         var newList = new TElement[array.Length];
         var index = 0;
@@ -437,12 +497,12 @@ public static class F
         return newList;
     }
 
-    public static TElement[] shallowFlatten<TElement>(TElement[][] lists)
+    public static TElement[] ShallowFlatten<TElement>(TElement[][] lists)
     {
         return lists.SelectMany(s => s).ToArray();
     }
 
-    public static TElement[] shallowFlatten<TElement>(ICollection<List<TElement>> lists)
+    public static TElement[] ShallowFlatten<TElement>(IEnumerable<List<TElement>> lists)
     {
         return lists.SelectMany(s => s).ToArray();
     }

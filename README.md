@@ -17,21 +17,26 @@ Functional programming utilities for C# & Unity3D
 - `T[,]`
 
 ##Functions
-- getValue(s) 
-- getKey(s)
-- setValue
-- shallowFlatten
-- toPairs
-- fromPairs
-- map
-- mapObject
-- mapDictionary
-- mapRectangularArray
-- reduce
-- pluck***
-- zip***
-- distinctBy***
-- shallowClone***
+- GetValue(s) 
+- GetKey(s)
+- SetValue
+- ShallowFlatten
+- ToPairs
+- FromPairs
+- ShallowCloneObject
+- ShallowCloneDictionary
+- ShallowCloneEnumerable
+- ShallowObjectFromDictionary
+- ShallowDictionaryFromObject
+- Map
+- MapObject
+- MapDictionary
+- MapRectangularArray
+- Reduce
+- Pluck
+- Zip
+- ShallowClone
+- DistinctBy***
 - merge***
 
 ##Samples
