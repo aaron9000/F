@@ -206,7 +206,7 @@ namespace UnityTest
             var b = new ObjectA("b", "b", "b");
             var c = new ObjectA("c", "c", "c");
             var list = new List<ObjectA> (new[] {a, b, c});
-            var clonedList = F.DeepCloneCollection<ObjectA, List<ObjectA>>(list);
+            var clonedList = F.DeepCloneObjectCollection<ObjectA, List<ObjectA>>(list);
             clonedList[0].first_name = "d";
             Assert.AreEqual(a.first_name, "a");
             Assert.AreEqual(clonedList[1].last_name, "b");

@@ -84,6 +84,11 @@ public static class F
         return new Dictionary<string, object>();
     }
 
+    public static List<T> EmptyList<T>()
+    {
+        return new List<T>();
+    }
+
     public static int[] Range(int startInclusive, int endExclusive)
     {
         var l = endExclusive - startInclusive;
@@ -294,7 +299,7 @@ public static class F
         return clone;
     }
 
-    public static TCollection DeepCloneCollection<TElement, TCollection>(TCollection source)
+    public static TCollection DeepCloneObjectCollection<TElement, TCollection>(TCollection source)
         where TCollection : ICollection<TElement>, new() where TElement: new()
     {
         if (source == null)
