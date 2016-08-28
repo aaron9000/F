@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 using UnityEngine;
@@ -12,39 +13,52 @@ namespace UnityTest
     {
         #region Test Classes
 
-        private class ObjWithFields
-        {
-            public int a;
-            public int b;
 
-            public ObjWithFields()
+        private class ObjectA
+        {
+            public string first_name;
+            public string middle_name;
+            public string last_name;
+
+            public ObjectA(string first, string middle, string last)
             {
-                a = 1;
-                b = 2;
+                first_name = first;
+                middle_name = middle;
+                last_name = last;
             }
         }
 
-        private class ObjWithProperties
+        private class ObjectB
         {
-            public int a { get; set; }
-            public int b { get; set; }
+            public int first_name_letter_count;
+            public int last_name_letter_count;
+            public string first_name_capitalized;
+            public string last_name_capitalized;
 
-            public ObjWithProperties()
+            public ObjectB()
             {
-                a = 1;
-                b = 2;
             }
         }
 
-        private class ObjWithMixed
+        private class ObjectC
         {
-            public int a { get; set; }
-            public int b;
+            public string first_name;
 
-            public ObjWithMixed()
+            public ObjectC(string first)
             {
-                a = 1;
-                b = 2;
+                first_name = first;
+            }
+        }
+
+        private class ExampleClass
+        {
+            public int A { get; set; }
+            public int B;
+
+            public ExampleClass()
+            {
+                A = 1;
+                B = 2;
             }
         }
 
@@ -53,19 +67,10 @@ namespace UnityTest
         #region Test Data
 
         // Objects
-        private static ObjWithFields OBJECT_WITH_FIELDS()
-        {
-            return new ObjWithFields();
-        }
 
-        private static ObjWithProperties OBJECT_WITH_PROPERTIES()
+        private static ExampleClass OBJECT()
         {
-            return new ObjWithProperties();
-        }
-
-        private static ObjWithMixed OBJECT_WITH_MIXED()
-        {
-            return new ObjWithMixed();
+            return new ExampleClass();
         }
 
         // Uniform 1D
@@ -74,31 +79,16 @@ namespace UnityTest
             return new HashSet<int> {1, 2};
         }
 
-        private static int[] INT_ARRAY()
-        {
-            return new [] {1, 2};
-        }
-
         private static List<int> INT_LIST()
         {
-            return new List<int>(new int[] {1, 2});
+            return new List<int>(new [] {1, 2});
         }
 
-        // Mixed 1D
-        private static HashSet<object> MIXED_OBJECT_SET()
+        private static List<int> INT_LIST_LONG()
         {
-            return new HashSet<object> {1, "2", 2, "3"};
+            return new List<int>(new[] {1, 2, 3, 4, 5, 6, 7, 9, 10});
         }
 
-        private static List<object> MIXED_OBJECT_LIST()
-        {
-            return new List<object>(new object[] {1, "2", 3, "3"});
-        }
-
-        private static object[] MIXED_OBJECT_ARRAY()
-        {
-            return new object[] {1, "2", 3, "3"};
-        }
 
         // Mixed 2D
         private static object[,] MIXED_OBJECT_RECT_ARRAY()
@@ -122,20 +112,68 @@ namespace UnityTest
         // Dict
         private static Dictionary<string, int> STRING_INT_DICTIONARY()
         {
-            return new Dictionary<string, int> {{"a", 1}, {"b", 2}};
+            return new Dictionary<string, int> {{"A", 1}, {"B", 2}};
         }
 
         private static Dictionary<string, object> STRING_OBJECT_DICTIONARY()
         {
-            return new Dictionary<string, object> {{"a", 1}, {"b", "2"}};
+            return new Dictionary<string, object> {{"A", 1}, {"B", "2"}};
+        }
+
+        private static Dictionary<string, object> UNIFORM_STRING_OBJECT_DICTIONARY()
+        {
+            return new Dictionary<string, object> {{"A", 1}, {"B", 2}};
         }
 
         #endregion
 
-        #region ShallowClone
+        #region Cloning and Converting
+
 
         [Test]
-        public void ShallowCloneListTest()
+        public void ObjectFromDictionaryTest()
+        {
+            var dict = UNIFORM_STRING_OBJECT_DICTIONARY();
+            dict["A"] = 33;
+            var obj = F.ShallowObjectFromDictionary<ExampleClass>(dict);
+            Assert.AreEqual(obj.A, 33);
+            Assert.AreEqual(obj.B, 2);
+        }
+
+        [Test]
+        public void ObjectFromDictionaryMismatchedTypesTest()
+        {
+            var dict = STRING_OBJECT_DICTIONARY();
+            dict["A"] = 33;
+            var obj = F.ShallowObjectFromDictionary<ExampleClass>(dict);
+            Assert.AreEqual(obj.A, 33);
+            Assert.AreEqual(obj.B, 2);
+        }
+
+        [Test]
+        public void DictionaryFromObjectTest()
+        {
+            var obj = OBJECT();
+            var dict = F.ShallowDictionaryFromObject(obj);
+            Assert.AreEqual(dict["A"], 1);
+            Assert.AreEqual(dict["B"], 2);
+        }
+
+
+        [Test]
+        public void ShallowCloneObjectTest()
+        {
+            var obj = OBJECT();
+            obj.B = 33;
+            var clonedObj = F.ShallowCloneObject(obj);
+            obj.A = 100;
+            obj.B = 10;
+            Assert.AreEqual(clonedObj.B, 33);
+            Assert.AreEqual(obj.A, 100);
+        }
+
+        [Test]
+        public void ShallowCloneCollectionTest()
         {
             var list = INT_LIST();
             var clonedList = F.ShallowCloneCollection<int, List<int>>(list);
@@ -153,7 +191,7 @@ namespace UnityTest
             dict.Clear();
             Assert.AreEqual(dict.Count, 0);
             Assert.AreEqual(clonedDict.Count, 2);
-            Assert.AreEqual(clonedDict["a"], 1);
+            Assert.AreEqual(clonedDict["A"], 1);
         }
 
         #endregion
@@ -163,17 +201,21 @@ namespace UnityTest
         [Test]
         public void GetObjectValueTest()
         {
-            var obj = OBJECT_WITH_MIXED();
-            var a = F.GetValue<int>("a", obj);
-            var b = F.GetValue<int>("b", obj);
+            var obj = OBJECT();
+            var a = F.GetValue<int>("A", obj);
+            var b = F.GetValue<int>("B", obj);
+            var c = F.GetValue<int>("C", obj);
+            var x = F.GetValue<string>("A", obj);
             Assert.AreEqual(a, 1);
             Assert.AreEqual(b, 2);
+            Assert.AreEqual(c, 0);
+            Assert.AreEqual(x, null);
         }
 
         [Test]
         public void GetDictionaryValueTest()
         {
-            var a = F.GetValue<int>("a", STRING_OBJECT_DICTIONARY());
+            var a = F.GetValue<int>("A", STRING_OBJECT_DICTIONARY());
             Assert.AreEqual(a, 1);
         }
 
@@ -181,16 +223,16 @@ namespace UnityTest
         public void GetDictionaryKeysTest()
         {
             var a = F.GetKeys(STRING_OBJECT_DICTIONARY());
-            Assert.AreEqual(a[0], "a");
-            Assert.AreEqual(a[1], "b");
+            Assert.AreEqual(a[0], "A");
+            Assert.AreEqual(a[1], "B");
         }
 
         [Test]
         public void GetObjectKeysTest()
         {
-            var a = F.GetKeys(OBJECT_WITH_MIXED());
-            Assert.AreEqual(a[0], "a");
-            Assert.AreEqual(a[1], "b");
+            var a = F.GetKeys(OBJECT());
+            Assert.AreEqual(a[0], "A");
+            Assert.AreEqual(a[1], "B");
         }
 
         [Test]
@@ -204,7 +246,7 @@ namespace UnityTest
         [Test]
         public void GetObjectValuesTest()
         {
-            var a = F.GetValues(OBJECT_WITH_MIXED());
+            var a = F.GetValues(OBJECT());
             Assert.AreEqual(a[0], 1);
             Assert.AreEqual(a[1], 2);
         }
@@ -212,11 +254,11 @@ namespace UnityTest
         [Test]
         public void SetObjectValueTest()
         {
-            var obj = OBJECT_WITH_MIXED();
-            F.SetValue("a", 22, obj);
-            F.SetValue("b", 33, obj);
-            Assert.AreEqual(obj.a, 22);
-            Assert.AreEqual(obj.b, 33);
+            var obj = OBJECT();
+            F.SetValue("A", 22, obj);
+            F.SetValue("B", 33, obj);
+            Assert.AreEqual(obj.A, 22);
+            Assert.AreEqual(obj.B, 33);
         }
 
         #endregion
@@ -227,9 +269,9 @@ namespace UnityTest
         public void MapObjectTest()
         {
             var mappedList = F.MapObject((k, v) => String.Format("{0}{1}", k, v.ToString()),
-                OBJECT_WITH_MIXED());
-            Assert.AreEqual(mappedList[0], "a1");
-            Assert.AreEqual(mappedList[1], "b2");
+                OBJECT());
+            Assert.AreEqual(mappedList[0], "A1");
+            Assert.AreEqual(mappedList[1], "B2");
         }
 
         [Test]
@@ -237,8 +279,8 @@ namespace UnityTest
         {
             var mappedList = F.MapDictionary((k, v) => String.Format("{0}{1}", k, v.ToString()),
                 STRING_OBJECT_DICTIONARY());
-            Assert.AreEqual(mappedList[0], "a1");
-            Assert.AreEqual(mappedList[1], "b2");
+            Assert.AreEqual(mappedList[0], "A1");
+            Assert.AreEqual(mappedList[1], "B2");
         }
 
         [Test]
@@ -290,40 +332,20 @@ namespace UnityTest
         public void ToPairsDictionaryTest()
         {
             var list = F.ToPairs(STRING_INT_DICTIONARY());
-            Assert.AreEqual(list[0, 0], "a");
-            Assert.AreEqual(list[0, 1], 1);
-            Assert.AreEqual(list[1, 0], "b");
-            Assert.AreEqual(list[1, 1], 2);
-        }
-
-        [Test]
-        public void ToPairsObjectWithFieldsTest()
-        {
-            var list = F.ToPairs(OBJECT_WITH_FIELDS());
-            Assert.AreEqual(list[0, 0], "a");
-            Assert.AreEqual(list[0, 1], 1);
-            Assert.AreEqual(list[1, 0], "b");
-            Assert.AreEqual(list[1, 1], 2);
-        }
-
-        [Test]
-        public void ToPairsObjectWithPropertiesTest()
-        {
-            var list = F.ToPairs(OBJECT_WITH_PROPERTIES());
-            Assert.AreEqual(list[0, 0], "a");
-            Assert.AreEqual(list[0, 1], 1);
-            Assert.AreEqual(list[1, 0], "b");
-            Assert.AreEqual(list[1, 1], 2);
+            Assert.AreEqual(list[0][0], "A");
+            Assert.AreEqual(list[0][1], 1);
+            Assert.AreEqual(list[1][0], "B");
+            Assert.AreEqual(list[1][1], 2);
         }
 
         [Test]
         public void ToPairsObjectWithMixedTest()
         {
-            var list = F.ToPairs(OBJECT_WITH_MIXED());
-            Assert.AreEqual(list[0, 0], "a");
-            Assert.AreEqual(list[0, 1], 1);
-            Assert.AreEqual(list[1, 0], "b");
-            Assert.AreEqual(list[1, 1], 2);
+            var list = F.ToPairs(OBJECT());
+            Assert.AreEqual(list[0][0], "A");
+            Assert.AreEqual(list[0][1], 1);
+            Assert.AreEqual(list[1][0], "B");
+            Assert.AreEqual(list[1][1], 2);
         }
 
         #endregion
@@ -416,54 +438,107 @@ namespace UnityTest
 
         #endregion
 
-        #region Examples
 
-        private class ObjectA
+        #region Zip and Merge
+
+        [Test]
+        public void MergeTest()
         {
-            public string first_name_old = "dave";
-            public string last_name_old = "davidson";
-            public string first_name = "aaron";
-            public string last_name = "geisler";
+            var a = new Dictionary<string,object> {{"a", 1}, {"b", 2}};
+            var b = new Dictionary<string, object> {{"c", 1}, {"b", 3}};
+            var c = F.Merge(a, b);
 
-            public ObjectA()
-            {
-            }
-        }
 
-        private class ObjectB
-        {
-            public int first_name_digits = 5;
-            public int last_name_digits = 7;
-            public string capitalized_first_name = "AARON";
-            public string capitalized_last_name = "GEISLER";
-
-            public ObjectB()
-            {
-            }
+            Assert.AreEqual(c["a"], 1);
+            Assert.AreEqual(c["b"], 3);
+            Assert.AreEqual(c["c"], 1);
         }
 
         [Test]
-        public void ExampleTest()
+        public void ZipListTest()
         {
-//            var objA = new ObjectA();
-//            var a = F.ShallowDictionaryFromObject(objA);
 
-//      var a = F.ToPairs(new ObjectA());
-//		  var a = F.ToPairs(new ObjectA());
-//      var b = F.MapRectangularArray<object, object>(pair => pair, a);
-//      var c = F.filter(pair => ((string) pair[0]).EndsWith("old"));
-//		  var d = F.instantiateWithDictionary();
-//			var list = new List<bool> (new bool[] {false, true, true});
-//			var reducedCollection = F.Reduce<List<int>, bool> ((accum, value) => {
-//				accum.Add(value ? 1 : 0);
-//				return accum;
-//			}, new List<int>(), list);
-//			Assert.AreEqual (reducedCollection.Count, 3);
-//			Assert.AreEqual (reducedCollection[0], 0);
-//			Assert.AreEqual (reducedCollection[1], 1);
-//			Assert.AreEqual (reducedCollection[2], 1);
+        }
+
+        [Test]
+        public void ZipRectangularArrayTest()
+        {
+
         }
 
         #endregion
+
+        [Test]
+        public void ShuffleTest()
+        {
+            var a = INT_LIST_LONG();
+            var b = F.Shuffle<int, List<int>>(a);
+            Assert.AreEqual(a[0], 1);
+            Assert.AreEqual(a[1], 2);
+            Assert.AreEqual(a.SequenceEqual(b), false);
+        }
+
+        #region Pick and Pluck
+
+        [Test]
+        public void PluckObjectTest()
+        {
+            var a = new object[]
+            {
+                new ObjectA("samuel", "l", "jackson"),
+                new ObjectA("albert", "d", "einstein"),
+                new ObjectA("george", "k", "bush"),
+                new ObjectC("aaron"),
+                new Dictionary<string, object> {{"first_name", "frank"}}
+            };
+
+            var b = F.PluckFromObjects<string>("first_name", a);
+            Assert.AreEqual(b[0], "samuel");
+            Assert.AreEqual(b[1], "albert");
+            Assert.AreEqual(b[2], "george");
+            Assert.AreEqual(b[3], "aaron");
+            Assert.AreEqual(b[4], null);
+        }
+
+        [Test]
+        public void PluckDictionaryTest()
+        {
+            var a = new []
+            {
+                new Dictionary<string, object> {{"first_name", "frank"}},
+                new Dictionary<string, object> {{"first_name", "dennis"}},
+                new Dictionary<string, object> {{"first_name", "dee"}},
+                new Dictionary<string, object> {{"first_name", "mac"}}
+            };
+
+            var b = F.PluckFromDictionaries<string>("first_name", a);
+            Assert.AreEqual(b[0], "frank");
+            Assert.AreEqual(b[1], "dennis");
+            Assert.AreEqual(b[2], "dee");
+            Assert.AreEqual(b[3], "mac");
+        }
+
+        [Test]
+        public void PickAllObjectTest()
+        {
+            var obj = OBJECT();
+            var picked = F.PickAll(new[] {"A", "b"}, obj);
+            Assert.AreEqual(picked["A"], 1);
+            Assert.AreEqual(picked.ContainsKey("B"), false);
+            Assert.AreEqual(picked.ContainsKey("b"), true);
+        }
+
+        [Test]
+        public void PickAllDictionaryTest()
+        {
+            var dict = STRING_OBJECT_DICTIONARY();
+            var picked = F.PickAll(new[] {"A", "b"}, dict);
+            Assert.AreEqual(picked["A"], 1);
+            Assert.AreEqual(picked.ContainsKey("B"), false);
+            Assert.AreEqual(picked.ContainsKey("b"), true);
+        }
+
+        #endregion
+
     }
 }

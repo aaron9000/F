@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Collections;
 using System.Linq;
+using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using NSubstitute.Core;
 
@@ -29,11 +31,16 @@ public static class F
 
         public object GetValue(object obj)
         {
+            if (obj == null)
+                return null;
             return _fieldInfo != null ? _fieldInfo.GetValue(obj) : _propertyInfo.GetValue(obj, null);
         }
 
         public void SetValue(object obj, object value)
         {
+            if (obj == null)
+                return;
+
             if (_fieldInfo != null)
             {
                 _fieldInfo.SetValue(obj, value);
@@ -70,21 +77,30 @@ public static class F
         }
     }
 
+    #region Misc
+
+    public static Dictionary<string, object> EmptyDictionary()
+    {
+        return new Dictionary<string, object>();
+    }
+
+    #endregion
+
     #region Reflection & Type Helpers
 
-    private static readonly Dictionary<string, CachedReflectionInfo> _cachedTypeInfo =
-        new Dictionary<string, CachedReflectionInfo>();
+    private static readonly Dictionary<Type, CachedReflectionInfo> _cachedTypeInfo =
+        new Dictionary<Type, CachedReflectionInfo>();
 
     private static CachedReflectionInfo GetReflectionInfo(object obj)
     {
         if (obj == null)
             return null;
-        var name = obj.GetType().Name;
-        if (_cachedTypeInfo.ContainsKey(name) == false)
+        var type = obj.GetType();
+        if (_cachedTypeInfo.ContainsKey(type) == false)
         {
-            _cachedTypeInfo.Add(name, new CachedReflectionInfo(obj));
+            _cachedTypeInfo.Add(type, new CachedReflectionInfo(obj));
         }
-        return _cachedTypeInfo[name];
+        return _cachedTypeInfo[type];
     }
 
     private static T GetObjectValueFast<T>(string key, object subject, CachedReflectionInfo info)
@@ -93,7 +109,14 @@ public static class F
             return default(T);
         if (info.Info.ContainsKey(key))
         {
-            return (T) info.Info[key].GetValue(subject);
+            try
+            {
+                return (T) info.Info[key].GetValue(subject);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(String.Format("GetObjectValueFast: {0}", e));
+            }
         }
         return default(T);
     }
@@ -104,8 +127,27 @@ public static class F
             return;
         if (info.Info.ContainsKey(key))
         {
-            info.Info[key].SetValue(subject, value);
+            try
+            {
+                info.Info[key].SetValue(subject, value);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(String.Format("SetObjectValueFast: {0}", e));
+            }
         }
+    }
+
+    private static bool IsDictionary(object obj)
+    {
+        var t = obj.GetType();
+        return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>);
+    }
+
+    private static bool IsCollection(object obj)
+    {
+        var t = obj.GetType();
+        return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>);
     }
 
     #endregion
@@ -194,7 +236,10 @@ public static class F
         var info = GetReflectionInfo(obj);
         foreach (var key in info.KeySet)
         {
-            SetObjectValueFast(key, dict[key], obj, info);
+            if (dict.ContainsKey(key))
+            {
+                SetObjectValueFast(key, dict[key], obj, info);
+            }
         }
         return obj;
     }
@@ -226,12 +271,12 @@ public static class F
         return clone;
     }
 
-    public static IDictionary<TKey, TValue> ShallowCloneDictionary<TKey, TValue, TDictionary>(
+    public static TDictionary ShallowCloneDictionary<TKey, TValue, TDictionary>(
         IDictionary<TKey, TValue> source)
         where TDictionary : IDictionary<TKey, TValue>, new()
     {
         if (source == null)
-            return null;
+            return default(TDictionary);
         var clone = new TDictionary();
         foreach (var pair in source)
         {
@@ -240,12 +285,12 @@ public static class F
         return clone;
     }
 
-    public static TEnumerable ShallowCloneCollection<TElement, TEnumerable>(TEnumerable source)
-        where TEnumerable : ICollection<TElement>, new()
+    public static TCollection ShallowCloneCollection<TElement, TCollection>(TCollection source)
+        where TCollection : ICollection<TElement>, new()
     {
         if (source == null)
-            return default(TEnumerable);
-        var clone = new TEnumerable();
+            return default(TCollection);
+        var clone = new TCollection();
         foreach (var value in source)
         {
             clone.Add(value);
@@ -363,28 +408,26 @@ public static class F
 
     #region ToPairs
 
-    public static object[,] ToPairs(object obj)
+    public static object[][] ToPairs(object obj)
     {
         var info = GetReflectionInfo(obj);
-        var pairs = new object[info.KeySet.Count, 2];
+        var pairs = new object[info.KeySet.Count][];
         var index = 0;
         foreach (var key in info.KeySet)
         {
-            pairs[index, 0] = key;
-            pairs[index, 1] = GetObjectValueFast<object>(key, obj, info);
+            pairs[index] = new[] {key, GetObjectValueFast<object>(key, obj, info)};
             index++;
         }
         return pairs;
     }
 
-    public static object[,] ToPairs<TKey, TValue>(IDictionary<TKey, TValue> dict)
+    public static object[][] ToPairs<TKey, TValue>(IDictionary<TKey, TValue> dict)
     {
-        var pairs = new object[dict.Keys.Count, 2];
+        var pairs = new object[dict.Keys.Count][];
         var index = 0;
         foreach (var key in dict.Keys)
         {
-            pairs[index, 0] = key;
-            pairs[index, 1] = dict[key];
+            pairs[index] = new[] {key, (object)dict[key]};
             index++;
         }
         return pairs;
@@ -407,6 +450,22 @@ public static class F
     }
 
     #endregion
+
+
+    #region Merge & Zip
+
+    public static Dictionary<string, object> Merge(Dictionary<string, object> a, Dictionary<string, object> b)
+    {
+        var setA = new HashSet<string>(a.Keys);
+        var setB = new HashSet<string>(b.Keys);
+        setB.UnionWith(setA);
+        var merge = new Dictionary<string, object>();
+        foreach (var key in setB)
+        {
+            merge.Add(key, b.ContainsKey(key) ? b[key] : a[key]);
+        }
+        return merge;
+    }
 
     public static Dictionary<string, object> Zip(IEnumerable<string> keys, IEnumerable<object> values)
     {
@@ -431,7 +490,11 @@ public static class F
         return dict;
     }
 
-    public static TPluckedValue[] Pluck<TPluckedValue>(string key, IEnumerable<Dictionary<string, object>> values)
+    #endregion
+
+    #region Pick and Pluck
+
+    public static TPluckedValue[] PluckFromDictionaries<TPluckedValue>(string key, IEnumerable<Dictionary<string, object>> values)
     {
         var plucked = new List<TPluckedValue>();
         foreach (var dict in values)
@@ -441,24 +504,20 @@ public static class F
         return plucked.ToArray();
     }
 
-    public static TPluckedValue[] Pluck<TPluckedValue>(string key, IEnumerable<object> values)
+    public static TPluckedValue[] PluckFromObjects<TPluckedValue>(string key, IEnumerable<object> values)
     {
-        var first = values.FirstOrDefault();
-        if (first == null)
-            return new TPluckedValue[0];
+        if (values == null)
+            return default(TPluckedValue[]);
 
         var pluckedValues = new List<TPluckedValue>();
-        var info = GetReflectionInfo(first);
+        CachedReflectionInfo info;
         foreach (var value in values)
         {
+            info = GetReflectionInfo(value);
             pluckedValues.Add(GetObjectValueFast<TPluckedValue>(key, value, info));
         }
         return pluckedValues.ToArray();
     }
-
-    // Merge
-
-    #region PickAll
 
     public static Dictionary<string, object> PickAll(IEnumerable<string> keys, object subject)
     {
@@ -476,14 +535,39 @@ public static class F
         var dict = new Dictionary<string, object>();
         foreach (var key in keys)
         {
-            dict.Add(key, subject[key]);
+            if (subject.ContainsKey(key))
+            {
+                dict.Add(key, subject[key]);
+            }
+            else
+            {
+                dict.Add(key, null);
+            }
         }
         return dict;
     }
 
     #endregion
 
-    #region ShallowFlatten
+    #region Shuffle
+
+    public static TList Shuffle<TElement, TList>(TList source)
+        where TList : IList<TElement>, new()
+    {
+        var copy = ShallowCloneCollection<TElement, TList>(source);
+        for (int i = 0; i < copy.Count; i++)
+        {
+            TElement temp = copy[i];
+            var randomIndex = UnityEngine.Random.Range(i, copy.Count);
+            copy[i] = copy[randomIndex];
+            copy[randomIndex] = temp;
+        }
+        return copy;
+    }
+
+    #endregion
+
+    #region ShallowFlatten (Tested)
 
     public static TElement[] ShallowFlatten<TElement>(TElement[,] array)
     {
