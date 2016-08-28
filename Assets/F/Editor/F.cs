@@ -294,6 +294,19 @@ public static class F
         return clone;
     }
 
+    public static TCollection DeepCloneCollection<TElement, TCollection>(TCollection source)
+        where TCollection : ICollection<TElement>, new() where TElement: new()
+    {
+        if (source == null)
+            return default(TCollection);
+        var clone = new TCollection();
+        foreach (var value in source)
+        {
+            clone.Add(ShallowCloneObject(value));
+        }
+        return clone;
+    }
+
     #endregion
 
     #region Map

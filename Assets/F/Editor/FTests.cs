@@ -19,6 +19,11 @@ namespace UnityTest
             public string middle_name;
             public string last_name;
 
+            public ObjectA()
+            {
+
+            }
+
             public ObjectA(string first, string middle, string last)
             {
                 first_name = first;
@@ -192,6 +197,20 @@ namespace UnityTest
             Assert.AreEqual(list.Count, 0);
             Assert.AreEqual(clonedList.Count, 2);
             Assert.AreEqual(clonedList[0], 1);
+        }
+
+        [Test]
+        public void DeepCloneCollectionTest()
+        {
+            var a = new ObjectA("a", "a", "a");
+            var b = new ObjectA("b", "b", "b");
+            var c = new ObjectA("c", "c", "c");
+            var list = new List<ObjectA> (new[] {a, b, c});
+            var clonedList = F.DeepCloneCollection<ObjectA, List<ObjectA>>(list);
+            clonedList[0].first_name = "d";
+            Assert.AreEqual(a.first_name, "a");
+            Assert.AreEqual(clonedList[1].last_name, "b");
+            Assert.AreEqual(clonedList.Count, 3);
         }
 
         [Test]
