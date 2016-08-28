@@ -44,7 +44,7 @@ Functional programming utilities for Unity3D. Inspiration taken from `ramda.js`.
 - `T[,]`
 
 ##Samples
-`c#
+```c#
 
 private class ObjectA
 {
@@ -103,4 +103,4 @@ public void ExampleATest()
     Assert.AreEqual(d.last_name_letter_count, 7);
 }
 
-`
+```
