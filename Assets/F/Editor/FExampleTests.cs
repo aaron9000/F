@@ -71,7 +71,19 @@ namespace UnityTest
         [Test]
         public void ExampleBTest()
         {
+            var a = F.Range(1, 4);
+            var b = F.Map(v => v * v, a);
+            var c = b.Sum();
+            Assert.AreEqual(c, 14);
+        }
 
+        [Test]
+        public void ExampleCTest()
+        {
+            var a = F.Range(1, 4);
+            var b = F.Map(v => v * v, a);
+            var c = b.Sum();
+            Assert.AreEqual(c, 14);
         }
 
     }

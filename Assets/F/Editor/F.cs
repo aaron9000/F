@@ -52,12 +52,12 @@ public static class F
         }
     }
 
-    private class CachedReflectionInfo
+    private class TypeReflectionInfo
     {
         public readonly Dictionary<string, KeyInfo> Info = new Dictionary<string, KeyInfo>();
         public readonly HashSet<string> KeySet;
 
-        public CachedReflectionInfo(object obj)
+        public TypeReflectionInfo(object obj)
         {
             var t = obj.GetType();
             var props = t.GetProperties();
@@ -84,26 +84,37 @@ public static class F
         return new Dictionary<string, object>();
     }
 
+    public static int[] Range(int startInclusive, int endExclusive)
+    {
+        var l = endExclusive - startInclusive;
+        if (l < 0)
+        {
+            return new int[0];
+        }
+        return Enumerable.Range(startInclusive, l).ToArray();
+    }
+
+
     #endregion
 
     #region Reflection & Type Helpers
 
-    private static readonly Dictionary<Type, CachedReflectionInfo> _cachedTypeInfo =
-        new Dictionary<Type, CachedReflectionInfo>();
+    private static readonly Dictionary<Type, TypeReflectionInfo> TypeReflectionInfoByType =
+        new Dictionary<Type, TypeReflectionInfo>();
 
-    private static CachedReflectionInfo GetReflectionInfo(object obj)
+    private static TypeReflectionInfo GetReflectionInfo(object obj)
     {
         if (obj == null)
             return null;
         var type = obj.GetType();
-        if (_cachedTypeInfo.ContainsKey(type) == false)
+        if (TypeReflectionInfoByType.ContainsKey(type) == false)
         {
-            _cachedTypeInfo.Add(type, new CachedReflectionInfo(obj));
+            TypeReflectionInfoByType.Add(type, new TypeReflectionInfo(obj));
         }
-        return _cachedTypeInfo[type];
+        return TypeReflectionInfoByType[type];
     }
 
-    private static T GetObjectValueFast<T>(string key, object subject, CachedReflectionInfo info)
+    private static T GetObjectValueFast<T>(string key, object subject, TypeReflectionInfo info)
     {
         if (subject == null)
             return default(T);
@@ -115,13 +126,13 @@ public static class F
             }
             catch (Exception e)
             {
-                Debug.LogError(String.Format("GetObjectValueFast: {0}", e));
+                Debug.LogError(String.Format("F: GetObjectValue: key = {0} exception: {1}", key, e));
             }
         }
         return default(T);
     }
 
-    private static void SetObjectValueFast(string key, object value, object subject, CachedReflectionInfo info)
+    private static void SetObjectValueFast(string key, object value, object subject, TypeReflectionInfo info)
     {
         if (subject == null)
             return;
@@ -133,21 +144,9 @@ public static class F
             }
             catch (Exception e)
             {
-                Debug.LogError(String.Format("SetObjectValueFast: {0}", e));
+                Debug.LogError(String.Format("F: SetObjectValue: key = {0} exception: {1}", key, e));
             }
         }
-    }
-
-    private static bool IsDictionary(object obj)
-    {
-        var t = obj.GetType();
-        return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>);
-    }
-
-    private static bool IsCollection(object obj)
-    {
-        var t = obj.GetType();
-        return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>);
     }
 
     #endregion
@@ -222,13 +221,10 @@ public static class F
 
     #endregion
 
-    #region Merge
-
-    #endregion
 
     #region Cloning & Converting Collections and Objects
 
-    public static T ShallowObjectFromDictionary<T>(Dictionary<string, object> dict) where T : new()
+    public static T ShallowObjectFromDictionary<T>(IDictionary<string, object> dict) where T : new()
     {
         if (dict == null)
             return default(T);
@@ -306,7 +302,7 @@ public static class F
         object obj)
     {
         if (obj == null)
-            return new TOutputElement[0];
+            return default(TOutputElement[]);
         var info = GetReflectionInfo(obj);
         var newArray = new TOutputElement[info.KeySet.Count];
         var index = 0;
@@ -322,7 +318,7 @@ public static class F
         IDictionary<string, object> dictionary)
     {
         if (dictionary == null)
-            return new TOutputElement[0];
+            return default(TOutputElement[]);
         var newArray = new TOutputElement[dictionary.Keys.Count];
         var index = 0;
         foreach (var entry in dictionary)
@@ -338,7 +334,7 @@ public static class F
         IEnumerable<TInputElement> values)
     {
         if (values == null)
-            return new TOutputElement[0];
+            return default(TOutputElement[]);
         var newList = new List<TOutputElement>();
         foreach (var value in values)
         {
@@ -351,7 +347,7 @@ public static class F
         Func<TInputElement[], TOutputElement> mappingFunction, TInputElement[,] rectArray)
     {
         if (rectArray == null)
-            return new TOutputElement[0];
+            return default(TOutputElement[]);
         var newArray = new TOutputElement[rectArray.GetLength(0)];
         var innerLength = rectArray.GetLength(1);
         var row = new TInputElement[innerLength];
@@ -372,9 +368,9 @@ public static class F
 
     public static Dictionary<string, object> FromPairs(object[][] pairs)
     {
-        var newDict = new Dictionary<string, object>();
         if (pairs == null)
-            return newDict;
+            return null;
+        var newDict = new Dictionary<string, object>();
         foreach (var pair in pairs)
         {
             newDict.Add((string) pair[0], pair[1]);
@@ -384,9 +380,9 @@ public static class F
 
     public static Dictionary<string, object> FromPairs(ICollection<List<object>> pairs)
     {
-        var newDict = new Dictionary<string, object>();
         if (pairs == null)
-            return newDict;
+            return null;
+        var newDict = new Dictionary<string, object>();
         foreach (var pair in pairs)
         {
             newDict.Add((string) pair[0], pair[1]);
@@ -396,6 +392,8 @@ public static class F
 
     public static Dictionary<string, object> FromPairs(object[,] pairs)
     {
+        if (pairs == null)
+            return null;
         var newDict = new Dictionary<string, object>();
         for (var i = 0; i < pairs.GetLength(0); i++)
         {
@@ -427,7 +425,7 @@ public static class F
         var index = 0;
         foreach (var key in dict.Keys)
         {
-            pairs[index] = new[] {key, (object)dict[key]};
+            pairs[index] = new[] {key, (object) dict[key]};
             index++;
         }
         return pairs;
@@ -451,10 +449,9 @@ public static class F
 
     #endregion
 
-
     #region Merge & Zip
 
-    public static Dictionary<string, object> Merge(Dictionary<string, object> a, Dictionary<string, object> b)
+    public static Dictionary<string, object> Merge(IDictionary<string, object> a, IDictionary<string, object> b)
     {
         var setA = new HashSet<string>(a.Keys);
         var setB = new HashSet<string>(b.Keys);
@@ -494,7 +491,8 @@ public static class F
 
     #region Pick and Pluck
 
-    public static TPluckedValue[] PluckFromDictionaries<TPluckedValue>(string key, IEnumerable<Dictionary<string, object>> values)
+    public static TPluckedValue[] PluckFromDictionaries<TPluckedValue>(string key,
+        IEnumerable<Dictionary<string, object>> values)
     {
         var plucked = new List<TPluckedValue>();
         foreach (var dict in values)
@@ -510,7 +508,7 @@ public static class F
             return default(TPluckedValue[]);
 
         var pluckedValues = new List<TPluckedValue>();
-        CachedReflectionInfo info;
+        TypeReflectionInfo info;
         foreach (var value in values)
         {
             info = GetReflectionInfo(value);
@@ -530,7 +528,7 @@ public static class F
         return dict;
     }
 
-    public static Dictionary<string, object> PickAll(IEnumerable<string> keys, Dictionary<string, object> subject)
+    public static Dictionary<string, object> PickAll(IEnumerable<string> keys, IDictionary<string, object> subject)
     {
         var dict = new Dictionary<string, object>();
         foreach (var key in keys)
