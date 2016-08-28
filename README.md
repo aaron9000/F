@@ -9,31 +9,31 @@ Functional programming utilities for Unity3D. Inspiration taken from `ramda.js`.
 - Encourages the use of lambdas and LINQ
 
 ##Functions
-- EmptyDictionary
-- Range
-- GetValue
-- SetValue
-- GetKeys
-- GetValues
-- ShallowObjectFromDictionary
-- ShallowDictionaryFromObject
-- ShallowCloneObject
-- ShallowCloneDictionary
-- ShallowCloneCollection
-- MapObject
-- MapDictionary
-- Map
-- MapRectangularArray
-- FromPairs
-- ToPairs
-- Reduce
-- Merge
-- Zip
-- PluckFromDictionaries
-- PluckFromObjects
-- PickAll
-- Shuffle
-- ShallowFlatten
+- `Map`
+- `MapObject`
+- `MapDictionary`
+- `MapRectangularArray`
+- `FromPairs`
+- `ToPairs`
+- `Reduce`
+- `Merge`
+- `Zip`
+- `PluckFromDictionaries`
+- `PluckFromObjects`
+- `PickAll`
+- `Shuffle`
+- `EmptyDictionary`
+- `Range`
+- `GetValue`
+- `SetValue`
+- `GetKeys`
+- `GetValues`
+- `ShallowObjectFromDictionary`
+- `ShallowDictionaryFromObject`
+- `ShallowCloneObject`
+- `ShallowCloneDictionary`
+- `ShallowCloneCollection`
+- `ShallowFlatten`
 
 ##Supported Data Types
 - `object`
