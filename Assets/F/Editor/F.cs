@@ -1,17 +1,33 @@
 ﻿using UnityEngine;
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Collections;
 using System.Linq;
-using System.Runtime.InteropServices;
-using JetBrains.Annotations;
-using NSubstitute.Core;
 
 
 public static class F
 {
+    public class Tuple<T1, T2>
+    {
+        public T1 First { get; private set; }
+        public T2 Second { get; private set; }
+
+        internal Tuple(T1 first, T2 second)
+        {
+            First = first;
+            Second = second;
+        }
+    }
+
+    public static class Tuple
+    {
+        public static Tuple<T1, T2> New<T1, T2>(T1 first, T2 second)
+        {
+            var tuple = new Tuple<T1, T2>(first, second);
+            return tuple;
+        }
+    }
+
     private class KeyInfo
     {
         private readonly FieldInfo _fieldInfo;
@@ -99,7 +115,6 @@ public static class F
         return Enumerable.Range(startInclusive, l).ToArray();
     }
 
-
     #endregion
 
     #region Reflection & Type Helpers
@@ -151,6 +166,10 @@ public static class F
             {
                 Debug.LogError(String.Format("F: SetObjectValue: key = {0} exception: {1}", key, e));
             }
+        }
+        else
+        {
+            Debug.LogError("F: SetObjectValue: nonexistent key: " + key);
         }
     }
 
@@ -226,7 +245,6 @@ public static class F
 
     #endregion
 
-
     #region Cloning & Converting Collections and Objects
 
     public static T ShallowObjectFromDictionary<T>(IDictionary<string, object> dict) where T : new()
@@ -300,7 +318,7 @@ public static class F
     }
 
     public static TCollection DeepCloneObjectCollection<TElement, TCollection>(TCollection source)
-        where TCollection : ICollection<TElement>, new() where TElement: new()
+        where TCollection : ICollection<TElement>, new() where TElement : new()
     {
         if (source == null)
             return default(TCollection);
@@ -361,6 +379,16 @@ public static class F
         return newList.ToArray();
     }
 
+    public static void Loop<TInputElement>(Func<TInputElement, object> eachFunction, IEnumerable<TInputElement> values)
+    {
+        if (values == null)
+            return;
+        foreach (var value in values)
+        {
+            eachFunction(value);
+        }
+    }
+
     public static TOutputElement[] MapRectangularArray<TInputElement, TOutputElement>(
         Func<TInputElement[], TOutputElement> mappingFunction, TInputElement[,] rectArray)
     {
@@ -383,6 +411,16 @@ public static class F
     #endregion
 
     #region FromPairs
+
+    public static Dictionary<string, TValue> CoerceDictionary<TValue>(IDictionary<string, object> dict)
+    {
+        var clone = new Dictionary<string, TValue>();
+        foreach (var pair in dict)
+        {
+            clone.Add(pair.Key, (TValue) pair.Value);
+        }
+        return clone;
+    }
 
     public static Dictionary<string, object> FromPairs(object[][] pairs)
     {
@@ -469,12 +507,12 @@ public static class F
 
     #region Merge & Zip
 
-    public static Dictionary<string, object> Merge(IDictionary<string, object> a, IDictionary<string, object> b)
+    public static Dictionary<TKey, TValue> Merge<TKey, TValue>(IDictionary<TKey, TValue> a, IDictionary<TKey, TValue> b)
     {
-        var setA = new HashSet<string>(a.Keys);
-        var setB = new HashSet<string>(b.Keys);
+        var setA = new HashSet<TKey>(a.Keys);
+        var setB = new HashSet<TKey>(b.Keys);
         setB.UnionWith(setA);
-        var merge = new Dictionary<string, object>();
+        var merge = new Dictionary<TKey, TValue>();
         foreach (var key in setB)
         {
             merge.Add(key, b.ContainsKey(key) ? b[key] : a[key]);
