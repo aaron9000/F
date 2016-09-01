@@ -11,61 +11,61 @@ namespace UnityTest
     [Category("F Example Tests")]
     internal class FExampleTests
     {
-        private class ObjectA
+        private class Name
         {
-            public string first_name;
-            public string middle_name;
-            public string last_name;
+            public string FirstName;
+            public string MiddleName;
+            public string LastName;
 
-            public ObjectA(string first, string middle, string last)
-            {
-                first_name = first;
-                middle_name = middle;
-                last_name = last;
-            }
-        }
-
-        private class ObjectB
-        {
-            public int first_name_letter_count;
-            public int last_name_letter_count;
-            public string first_name_capitalized;
-            public string last_name_capitalized;
-
-            public ObjectB()
+            public Name()
             {
             }
         }
 
-        private class ObjectC
+        private class NameMetrics
         {
-            public string first_name;
+            public int FirstNameLetterCount;
+            public int MiddleNameLetterCount;
+            public int LastNameLetterCount;
 
-            public ObjectC(string first)
+            public string FirstNameNormalized;
+            public string MiddleNameNormalized;
+            public string LastNameNormalized;
+
+            public string FirstNameInitial;
+            public string MiddleNameIntial;
+            public string LastNameInitial;
+
+            public NameMetrics()
             {
-                first_name = first;
             }
         }
 
         [Test]
-        public void ExampleATest()
+        public void ObjectManipulationTest()
         {
-            var a = new ObjectA("samuel", "l", "jackson");
+            var a = new Name {FirstName = "Samuel", MiddleName = "Leroy", LastName = "Jackson"};
             var b = F.ToPairs(a);
             var c = F.Reduce((accum, pair) =>
             {
                 var key = (string) pair[0];
                 var val = (string) pair[1];
-                accum.Add(key + "_letter_count", val.Length);
-                accum.Add(key + "_capitalized", val.ToUpper());
+                accum.Add(key + "Normalized", val.ToLower());
+                accum.Add(key + "LetterCount", val.Substring(0, 1));
+                accum.Add(key + "Initial", val.First());
                 return accum;
             }, F.EmptyDictionary(), b);
-            var d = F.ShallowObjectFromDictionary<ObjectB>(c);
+            var d = F.ShallowObjectFromDictionary<NameMetrics>(c);
 
-            Assert.AreEqual(d.first_name_capitalized, "SAMUEL");
-            Assert.AreEqual(d.last_name_capitalized, "JACKSON");
-            Assert.AreEqual(d.first_name_letter_count, 6);
-            Assert.AreEqual(d.last_name_letter_count, 7);
+            Assert.AreEqual(d.FirstNameNormalized, "samuel");
+            Assert.AreEqual(d.MiddleNameNormalized, "leroy");
+            Assert.AreEqual(d.LastNameNormalized, "jackson");
+            Assert.AreEqual(d.FirstNameLetterCount, 6);
+            Assert.AreEqual(d.MiddleNameLetterCount, 5);
+            Assert.AreEqual(d.LastNameLetterCount, 7);
+            Assert.AreEqual(d.FirstNameInitial, "S");
+            Assert.AreEqual(d.MiddleNameIntial, "L");
+            Assert.AreEqual(d.LastNameInitial, "J");
         }
 
         [Test]

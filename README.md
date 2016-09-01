@@ -7,6 +7,7 @@ Functional programming utilities for Unity3D. Inspiration taken from `ramda.js`.
 - Side-effect free
 - Declarative syntax
 - Encourages the use of lambdas and LINQ
+- Shallow immutability
 
 ##Functions
 - `Map`
@@ -24,6 +25,7 @@ Functional programming utilities for Unity3D. Inspiration taken from `ramda.js`.
 - `Shuffle`
 - `EmptyDictionary`
 - `Range`
+- `CoerceDictionary`
 - `GetValue`
 - `SetValue`
 - `GetKeys`
@@ -34,6 +36,7 @@ Functional programming utilities for Unity3D. Inspiration taken from `ramda.js`.
 - `ShallowCloneDictionary`
 - `ShallowCloneCollection`
 - `ShallowFlatten`
+- `DeepCloneObjectCollection`
 
 ##Supported Data Types
 - `object`
