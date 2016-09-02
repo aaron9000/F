@@ -1,7 +1,7 @@
 #F
 
 ##Functional Programming Utilities for Unity3D
-F is a handful of utilties that make working with collections, objects, and dictionaries easier. Transform data in a declarative way and spend less time converting data between types. Write fewer loops and write more lambdas. F is inspired by `ramda.js`.
+F is a utility that makes working with collections, objects, and dictionaries more pleasant. Transform data easily and spend less time converting data between types. Additionally, it will encourage you to write fewer loops and more lambdas. F is inspired by `ramda.js`.
 
 ##Features
 - Declarative syntax
@@ -140,7 +140,7 @@ public void SumWeightsOfAnimalsTest()
 }
 
 ```
-
+        
 ```c#
 private class PartOne
 {
