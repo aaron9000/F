@@ -146,7 +146,7 @@ public static class F
             }
             catch (Exception e)
             {
-                Debug.LogError(String.Format("F: GetObjectValue: key = {0} exception: {1}", key, e));
+                Debug.LogWarning(String.Format("F: GetObjectValue: key = {0} exception: {1}", key, e));
             }
         }
         return default(T);
@@ -164,12 +164,12 @@ public static class F
             }
             catch (Exception e)
             {
-                Debug.LogError(String.Format("F: SetObjectValue: key = {0} exception: {1}", key, e));
+                Debug.LogWarning(String.Format("F: SetObjectValue: key = {0} exception: {1}", key, e));
             }
         }
         else
         {
-            Debug.LogError("F: SetObjectValue: nonexistent key: " + key);
+            Debug.LogWarning("F: SetObjectValue: nonexistent key: " + key);
         }
     }
 

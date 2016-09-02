@@ -7,7 +7,7 @@ F is a utility that makes working with collections, objects, and dictionaries mo
 - Declarative syntax
 - Encourages the use of lambdas and LINQ
 - Shallow immutability
-- Write dynamic code without inheritance and interfaces
+- Makes reptitive data transformations easier
 
 ##Add to Your Project
 Place `F.cs` in your Scripts folder.
@@ -31,7 +31,6 @@ F's tests are written using Unity's testing framework. You will need to open the
 - `PluckFromObjects`
 - `PickAll`
 - `Shuffle`
-- `Range`
 - `CoerceDictionary`
 - `GetValue`
 - `SetValue`
@@ -53,9 +52,7 @@ private class Name
     public string MiddleName;
     public string LastName;
 
-    public Name()
-    {
-    }
+    public Name() {}
 }
 
 private class NameMetrics
@@ -70,9 +67,7 @@ private class NameMetrics
     public string MiddleNameInitial;
     public string LastNameInitial;
 
-    public NameMetrics()
-    {
-    }
+    public NameMetrics() {}
 }
 
 [Test]
@@ -92,7 +87,6 @@ public void ConvertNameToMetricsTest()
     }, F.EmptyDictionary(), b);
     var d = F.ShallowObjectFromDictionary<NameMetrics>(c);
 
-    // Boom!
     Assert.AreEqual(d.FirstNameNormalized, "samuel");
     Assert.AreEqual(d.MiddleNameNormalized, "leroy");
     Assert.AreEqual(d.LastNameNormalized, "jackson");
@@ -112,9 +106,7 @@ public void ConvertNameToMetricsTest()
     public float Weight = 2.0f;
     public int Carrots = 0;
 
-    public Rabbit()
-    {
-    }
+    public Rabbit() {}
 }
 
 private class Squirrel
@@ -122,9 +114,7 @@ private class Squirrel
     public float Weight = 3.0f;
     public int Nuts = 0;
 
-    public Squirrel()
-    {
-    }
+    public Squirrel() {}
 }
 
 [Test]
@@ -135,7 +125,6 @@ public void SumWeightsOfAnimalsTest()
     var b = F.PluckFromObjects<float>("Weight", a);
     var c = b.Sum();
 
-    // Boom!
     Assert.AreEqual(c, 5.0f);
 }
 
@@ -147,9 +136,7 @@ private class PartOne
     public int A = 1;
     public int B = 2;
 
-    public PartOne()
-    {
-    }
+    public PartOne() {}
 }
 
 private class PartTwo   
@@ -157,9 +144,7 @@ private class PartTwo
     public int C = 3;
     public int D = 4;
 
-    public PartTwo()
-    {
-    }
+    public PartTwo() {}
 }
 
 private class CombinedParts
@@ -169,23 +154,18 @@ private class CombinedParts
     public int C = 0;
     public int D = 0;
 
-    public CombinedParts()
-    {
-
-    }
+    public CombinedParts() {}
 }
 
 [Test]
 public void CombinePartsTest()
 {
-
     // Combines two typed objects into a third type
     var a = F.ShallowDictionaryFromObject(new PartOne());
     var b = F.ShallowDictionaryFromObject(new PartTwo());
     var c = F.Merge(a, b);
     var d = F.ShallowObjectFromDictionary<CombinedParts>(c);
 
-    // Boom!
     Assert.AreEqual(d.A, 1);
     Assert.AreEqual(d.B, 2);
     Assert.AreEqual(d.C, 3);

@@ -56,7 +56,6 @@ namespace UnityTest
             }, F.EmptyDictionary(), b);
             var d = F.ShallowObjectFromDictionary<NameMetrics>(c);
 
-            // Boom!
             Assert.AreEqual(d.FirstNameNormalized, "samuel");
             Assert.AreEqual(d.MiddleNameNormalized, "leroy");
             Assert.AreEqual(d.LastNameNormalized, "jackson");
@@ -73,9 +72,7 @@ namespace UnityTest
             public float Weight = 2.0f;
             public int Carrots = 0;
 
-            public Rabbit()
-            {
-            }
+            public Rabbit(){}
         }
 
         private class Squirrel
@@ -83,9 +80,7 @@ namespace UnityTest
             public float Weight = 3.0f;
             public int Nuts = 0;
 
-            public Squirrel()
-            {
-            }
+            public Squirrel(){}
         }
 
         [Test]
@@ -96,7 +91,6 @@ namespace UnityTest
             var b = F.PluckFromObjects<float>("Weight", a);
             var c = b.Sum();
 
-            // Boom!
             Assert.AreEqual(c, 5.0f);
         }
 
@@ -106,9 +100,7 @@ namespace UnityTest
             public int A = 1;
             public int B = 2;
 
-            public PartOne()
-            {
-            }
+            public PartOne(){}
         }
 
         private class PartTwo
@@ -128,23 +120,18 @@ namespace UnityTest
             public int C = 0;
             public int D = 0;
 
-            public CombinedParts()
-            {
-
-            }
+            public CombinedParts(){}
         }
 
         [Test]
         public void CombinePartsTest()
         {
-
             // Combines two typed objects into a third type
             var a = F.ShallowDictionaryFromObject(new PartOne());
             var b = F.ShallowDictionaryFromObject(new PartTwo());
             var c = F.Merge(a, b);
             var d = F.ShallowObjectFromDictionary<CombinedParts>(c);
 
-            // Boom!
             Assert.AreEqual(d.A, 1);
             Assert.AreEqual(d.B, 2);
             Assert.AreEqual(d.C, 3);
