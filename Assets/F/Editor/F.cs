@@ -175,7 +175,7 @@ public static class F
 
     #endregion
 
-    #region Key / Value (maybe get rid of dict stuff?)
+    #region Key / Value
 
     public static T GetValue<T>(string key, IDictionary<string, object> dictionary)
     {
@@ -611,7 +611,7 @@ public static class F
 
     #endregion
 
-    #region ShallowFlatten (Tested)
+    #region ShallowFlatten
 
     public static TElement[] ShallowFlatten<TElement>(TElement[,] array)
     {

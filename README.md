@@ -1,6 +1,7 @@
 #F
+Functional programming utilities for Unity3D. 
 
-A toy functional programming toolbelt for Unity3D. Transform data with ease. Inspiration taken from `ramda.js`.
+F is a collection of functions that make working with arrays, objects, and dictionaries more seemless. Transform data with ease and spend less time converting data between common types. Write fewer loops and write more lambdas. F is inspired by the fantastic `ramda.js`.
 
 ##Features
 - Declarative syntax
@@ -8,9 +9,12 @@ A toy functional programming toolbelt for Unity3D. Transform data with ease. Ins
 - Shallow immutability
 - Write dynamic code without inheritance and interfaces
 
-##Tradeoffs
-- Less type safety
-- Performance (uses reflection)
+##Adding F to Your Project
+Simply add `F.cs` into your Scripts folder.
+
+##Running the Tests
+F's tests are written using Unity's testing framework. You will need to open the project in a Unity3D editor.
+`Window -> Editor Tests Runner -> Run All`
 
 ##Functions
 - `Map`
@@ -26,7 +30,6 @@ A toy functional programming toolbelt for Unity3D. Transform data with ease. Ins
 - `PluckFromObjects`
 - `PickAll`
 - `Shuffle`
-- `EmptyDictionary`
 - `Range`
 - `CoerceDictionary`
 - `GetValue`
@@ -40,14 +43,6 @@ A toy functional programming toolbelt for Unity3D. Transform data with ease. Ins
 - `ShallowCloneCollection`
 - `ShallowFlatten`
 - `DeepCloneObjectCollection`
-
-##Works with Familiar Types
-- `object`
-- `IDictionary<K, V>`
-- `ICollection<T>`
-- `ICollection<List<T>>`
-- `T[][]`
-- `T[,]`
 
 ##Samples
 ####Example A
@@ -159,7 +154,7 @@ private class PartOne
     }
 }
 
-private class PartTwo
+private class PartTwo   
 {
     public int C = 3;
     public int D = 4;

@@ -8,10 +8,10 @@ using UnityEngine;
 namespace UnityTest
 {
     [TestFixture]
-    [Category("F Tests")]
-    internal class FTests
+    [Category("F Unit Tests")]
+    internal class FUnitTests
     {
-        #region Test Classes
+        #region Test Classes & Data
 
         private class ObjectA
         {
@@ -54,17 +54,11 @@ namespace UnityTest
             }
         }
 
-        #endregion
-
-        #region Test Data
-
-        // Objects
         private static ObjectC GetObject()
         {
             return new ObjectC();
         }
 
-        // Uniform 1D
         private static HashSet<int> GetIntSet()
         {
             return new HashSet<int> {1, 2};
@@ -80,8 +74,6 @@ namespace UnityTest
             return new List<int>(new[] {1, 2, 3, 4, 5, 6, 7, 9, 10});
         }
 
-
-        // Mixed 2D
         private static object[,] GetMixedObjectRectArray()
         {
             return new object[,] {{"1", 2}, {"2", 3}};
@@ -100,7 +92,6 @@ namespace UnityTest
             return x;
         }
 
-        // Dict
         private static Dictionary<string, int> GetStringIntDictionary()
         {
             return new Dictionary<string, int> {{"A", 1}, {"B", 2}};
@@ -129,9 +120,17 @@ namespace UnityTest
             Assert.AreEqual(r[1], 5);
         }
 
+        [Test]
+        public void TupleTest()
+        {
+            var t = new F.Tuple<int, string>(5, "five");
+            Assert.AreEqual(t.First, 5);
+            Assert.AreEqual(t.Second, "five");
+        }
+
         #endregion
 
-        #region Cloning and Conversions
+        #region Cloning and Type Conversions
 
         [Test]
         public void CoerceDictionaryTest()
@@ -141,7 +140,6 @@ namespace UnityTest
             Assert.AreEqual(coercedDict["A"], 1);
             Assert.AreEqual(coercedDict["B"], 2);
         }
-
 
         [Test]
         public void ObjectFromDictionaryTest()
