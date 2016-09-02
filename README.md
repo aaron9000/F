@@ -1,7 +1,6 @@
 #F
-####Functional programming utilities for Unity3D
 
-##What Is It
+##Functional programming utilities for Unity3D
 F is a handful of utilties that make working with collections, objects, and dictionaries easier. Transform data in a declarative way and spend less time converting data between types. Write fewer loops and write more lambdas. F is inspired by `ramda.js`.
 
 ##Features
@@ -10,11 +9,12 @@ F is a handful of utilties that make working with collections, objects, and dict
 - Shallow immutability
 - Write dynamic code without inheritance and interfaces
 
-##Adding F to Your Project
-Simply add `F.cs` into your Scripts folder.
+##Add to Your Project
+Place `F.cs` in your Scripts folder.
 
 ##Running the Tests
 F's tests are written using Unity's testing framework. You will need to open the project in a Unity3D editor.
+
 `Window -> Editor Tests Runner -> Run All`
 
 ##Functions
