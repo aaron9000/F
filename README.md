@@ -1,6 +1,6 @@
 #F
 
-##Functional programming utilities for Unity3D
+##Functional Programming Utilities for Unity3D
 F is a handful of utilties that make working with collections, objects, and dictionaries easier. Transform data in a declarative way and spend less time converting data between types. Write fewer loops and write more lambdas. F is inspired by `ramda.js`.
 
 ##Features
@@ -45,8 +45,7 @@ F's tests are written using Unity's testing framework. You will need to open the
 - `ShallowFlatten`
 - `DeepCloneObjectCollection`
 
-##Samples
-####Example A
+##Examples
 ```c#
 private class Name
 {
@@ -107,7 +106,6 @@ public void ConvertNameToMetricsTest()
 
 ```
 
-####Example B
 ```c#
  private class Rabbit
 {
@@ -143,7 +141,6 @@ public void SumWeightsOfAnimalsTest()
 
 ```
 
-####Example C
 ```c#
 private class PartOne
 {
