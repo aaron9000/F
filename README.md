@@ -3,11 +3,16 @@
 Functional programming utilities for Unity3D. Inspiration taken from `ramda.js`.
 
 ##Features
-- Consistent parameter ordering
-- Side-effect free
+- Side-effect free*
 - Declarative syntax
 - Encourages the use of lambdas and LINQ
 - Shallow immutability
+- Write more dynamic code without inheritance
+
+##Tradeoffs
+- Less type safety
+- Performance (reflection)
+
 
 ##Functions
 - `Map`
@@ -38,7 +43,7 @@ Functional programming utilities for Unity3D. Inspiration taken from `ramda.js`.
 - `ShallowFlatten`
 - `DeepCloneObjectCollection`
 
-##Supported Data Types
+##Works with Familiar Types
 - `object`
 - `IDictionary<K, V>`
 - `ICollection<T>`
@@ -48,62 +53,62 @@ Functional programming utilities for Unity3D. Inspiration taken from `ramda.js`.
 
 ##Samples
 ```c#
+private class Name
+        {
+            public string FirstName;
+            public string MiddleName;
+            public string LastName;
 
-private class ObjectA
-{
-    public string first_name;
-    public string middle_name;
-    public string last_name;
+            public Name()
+            {
+            }
+        }
 
-    public ObjectA(string first, string middle, string last)
-    {
-        first_name = first;
-        middle_name = middle;
-        last_name = last;
-    }
-}
+        private class NameMetrics
+        {
+            public int FirstNameLetterCount;
+            public int MiddleNameLetterCount;
+            public int LastNameLetterCount;
 
-private class ObjectB
-{
-    public int first_name_letter_count;
-    public int last_name_letter_count;
-    public string first_name_capitalized;
-    public string last_name_capitalized;
+            public string FirstNameNormalized;
+            public string MiddleNameNormalized;
+            public string LastNameNormalized;
 
-    public ObjectB()
-    {
-    }
-}
+            public string FirstNameInitial;
+            public string MiddleNameIntial;
+            public string LastNameInitial;
 
-private class ObjectC
-{
-    public string first_name;
+            public NameMetrics()
+            {
+            }
+        }
 
-    public ObjectC(string first)
-    {
-        first_name = first;
-    }
-}
+        [Test]
+        public void ObjectManipulationTest()
+        {
+            var a = new Name {FirstName = "Samuel", MiddleName = "Leroy", LastName = "Jackson"};
+            var b = F.ToPairs(a);
+            var c = F.Reduce((accum, pair) =>
+            {
+                var key = (string) pair[0];
+                var val = (string) pair[1];
+                accum.Add(key + "Normalized", val.ToLower());
+                accum.Add(key + "LetterCount", val.Substring(0, 1));
+                accum.Add(key + "Initial", val.First());
+                return accum;
+            }, F.EmptyDictionary(), b);
+            var d = F.ShallowObjectFromDictionary<NameMetrics>(c);
 
-[Test]
-public void ExampleATest()
-{
-    var a = new ObjectA("samuel", "l", "jackson");
-    var b = F.ToPairs(a);
-    var c = F.Reduce((accum, pair) =>
-    {
-        var key = (string) pair[0];
-        var val = (string) pair[1];
-        accum.Add(key + "_letter_count", val.Length);
-        accum.Add(key + "_capitalized", val.ToUpper());
-        return accum;
-    }, F.EmptyDictionary(), b);
-    var d = F.ShallowObjectFromDictionary<ObjectB>(c);
-
-    Assert.AreEqual(d.first_name_capitalized, "SAMUEL");
-    Assert.AreEqual(d.last_name_capitalized, "JACKSON");
-    Assert.AreEqual(d.first_name_letter_count, 6);
-    Assert.AreEqual(d.last_name_letter_count, 7);
-}
+            // Boom!
+            Assert.AreEqual(d.FirstNameNormalized, "samuel");
+            Assert.AreEqual(d.MiddleNameNormalized, "leroy");
+            Assert.AreEqual(d.LastNameNormalized, "jackson");
+            Assert.AreEqual(d.FirstNameLetterCount, 6);
+            Assert.AreEqual(d.MiddleNameLetterCount, 5);
+            Assert.AreEqual(d.LastNameLetterCount, 7);
+            Assert.AreEqual(d.FirstNameInitial, "S");
+            Assert.AreEqual(d.MiddleNameIntial, "L");
+            Assert.AreEqual(d.LastNameInitial, "J");
+        }
 
 ```

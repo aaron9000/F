@@ -379,16 +379,6 @@ public static class F
         return newList.ToArray();
     }
 
-    public static void Loop<TInputElement>(Func<TInputElement, object> eachFunction, IEnumerable<TInputElement> values)
-    {
-        if (values == null)
-            return;
-        foreach (var value in values)
-        {
-            eachFunction(value);
-        }
-    }
-
     public static TOutputElement[] MapRectangularArray<TInputElement, TOutputElement>(
         Func<TInputElement[], TOutputElement> mappingFunction, TInputElement[,] rectArray)
     {

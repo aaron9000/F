@@ -131,7 +131,17 @@ namespace UnityTest
 
         #endregion
 
-        #region Cloning and Converting
+        #region Cloning and Conversions
+
+        [Test]
+        public void CoerceDictionaryTest()
+        {
+            var dict = GetUniformStringObjectDictionary();
+            var coercedDict = F.CoerceDictionary<int>(dict);
+            Assert.AreEqual(coercedDict["A"], 1);
+            Assert.AreEqual(coercedDict["B"], 2);
+        }
+
 
         [Test]
         public void ObjectFromDictionaryTest()
@@ -161,7 +171,6 @@ namespace UnityTest
             Assert.AreEqual(dict["A"], 1);
             Assert.AreEqual(dict["B"], 2);
         }
-
 
         [Test]
         public void ShallowCloneObjectTest()
