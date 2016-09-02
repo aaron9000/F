@@ -1,7 +1,8 @@
 #F
-Functional programming utilities for Unity3D. 
+####Functional programming utilities for Unity3D
 
-F is a collection of functions that make working with arrays, objects, and dictionaries more seemless. Transform data with ease and spend less time converting data between common types. Write fewer loops and write more lambdas. F is inspired by the fantastic `ramda.js`.
+##What Is It
+F is a handful of utilties that make working with collections, objects, and dictionaries easier. Transform data in a declarative way and spend less time converting data between types. Write fewer loops and write more lambdas. F is inspired by `ramda.js`.
 
 ##Features
 - Declarative syntax
