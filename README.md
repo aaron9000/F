@@ -10,7 +10,7 @@ F makes working with collections, objects, and dictionaries more pleasant. Trans
 - Makes repetitive data transformations easier
 
 ##Add to Your Project
-Place `F.cs` in your Scripts folder.
+Place `F.cs` in your Scripts folder. (Link to file)[https://github.com/aaron9000/F/blob/master/Assets/F/F.cs]
 
 ##Running the Tests
 F's tests are written for Unity's testing framework. Open the project in the Unity3D editor to run them.
