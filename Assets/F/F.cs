@@ -325,6 +325,14 @@ public static class F
 
     #region Map
 
+    public static void Loop<T>(Action<T> loopAction, IEnumerable<T> collection)
+    {
+        foreach (var v in collection)
+        {
+            loopAction(v);
+        }
+    }
+
     public static TOutputElement[] MapObject<TOutputElement>(Func<string, object, TOutputElement> mappingFunction,
         object obj)
     {
@@ -590,6 +598,19 @@ public static class F
         where TList : IList<TElement>, new()
     {
         var copy = ShallowCloneCollection<TElement, TList>(source);
+        for (int i = 0; i < copy.Count; i++)
+        {
+            TElement temp = copy[i];
+            var randomIndex = UnityEngine.Random.Range(i, copy.Count);
+            copy[i] = copy[randomIndex];
+            copy[randomIndex] = temp;
+        }
+        return copy;
+    }
+
+    public static List<TElement> ShuffleList<TElement>(List<TElement> source)
+    {
+        var copy = ShallowCloneCollection<TElement, List<TElement>>(source);
         for (int i = 0; i < copy.Count; i++)
         {
             TElement temp = copy[i];
