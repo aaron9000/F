@@ -1,23 +1,21 @@
-#F
+# F
+A collection of utilities for transforming data. F uses C# reflection. Because of this, do not use F for anything performance-sensitive. Inspiration taken from `ramda.js`.
 
-##Functional Programming Utilities for Unity3D
-F makes working with collections, objects, and dictionaries more pleasant. Transform data easily and spend less time converting between types. Write fewer loops and more lambdas. F is inspired by `ramda.js`. 
-
-##Features
+## Features
 - Declarative syntax
 - Encourages the use of lambdas and LINQ
 - Shallow immutability
 - Makes repetitive data transformations easier
 
-##Add to Your Project
+## Add to Your Project
 Place `F.cs` in your Scripts folder. [Link to file](https://github.com/aaron9000/F/blob/master/Assets/F/F.cs)
 
-##Running the Tests
-F's tests are written for Unity's testing framework. Open the project in the Unity3D editor to run them.
+## Running the Tests
+F's tests are written for Unity's testing framework. Open the project in the editor to run them.
 
 `Window -> Editor Tests Runner -> Run All`
 
-##Functions
+## Functions
 - `Map`
 - `MapObject`
 - `MapDictionary`
@@ -44,7 +42,7 @@ F's tests are written for Unity's testing framework. Open the project in the Uni
 - `ShallowFlatten`
 - `DeepCloneObjectCollection`
 
-##Examples
+## Examples
 ```c#
 private class Name
 {
