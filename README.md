@@ -1,15 +1,15 @@
 # F
 A collection of utilities for transforming data. F uses C# reflection. Because of this, do not use F for anything performance-sensitive. Inspiration taken from `ramda.js`.
 
-## Add to Your Project
+### Add to Your Project
 Place `F.cs` in your Scripts folder. [Link to file](https://github.com/aaron9000/F/blob/master/Assets/F/F.cs)
 
-## Running the Tests
+### Running the Tests
 F's tests are written for Unity's testing framework. Open the project in the editor to run them.
 
 `Window -> Editor Tests Runner -> Run All`
 
-## Functions
+### Functions
 - `Map`
 - `MapObject`
 - `MapDictionary`
@@ -36,7 +36,7 @@ F's tests are written for Unity's testing framework. Open the project in the edi
 - `ShallowFlatten`
 - `DeepCloneObjectCollection`
 
-## Examples
+### Examples
 ```c#
 private class Name
 {
