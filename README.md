@@ -1,5 +1,5 @@
 # F
-A collection of utilities for transforming data. F uses C# reflection. Because of this, do not use F for anything performance-sensitive. Inspiration taken from `ramda.js`.
+A collection of utilities for transforming data. F uses reflection and will create garbage. Because of this, do not use F for anything performance-sensitive. Inspiration taken from `ramda.js`.
 
 ### Add to Your Project
 Place `F.cs` in your Scripts folder. [Link to file](https://github.com/aaron9000/F/blob/master/Assets/F/F.cs)
